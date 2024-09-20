@@ -229,7 +229,11 @@ export class OpenCTIStreamClient extends EventEmitter {
         this.connectionId = undefined;
         this.eventSource = undefined;
 
-        const eventSource = new EventSource(this.constructStreamUrl());
+        const eventSource = new EventSource(this.constructStreamUrl(), {
+            headers: this.authorization ? {
+                'Authorization': `Bearer ${this.authorization}`
+            } : {}
+        });
 
         eventSource.addEventListener("error", (e) => {
             // if the eventsource is closed, we already handled an error on this eventsource, ignore

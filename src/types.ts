@@ -1,11 +1,29 @@
 import {
-    StixObject,
-    Identity as StixIdentity,
-    Indicator as StixIndicator,
-    DomainName as StixDomainName,
-    IdentityClassOv,
     Identifier,
+    StixCyberObservableObject,
+    DomainName as StixDomainName,
+    Identity as StixIdentity,
+    Incident as StixIncident,
+    Indicator as StixIndicator,
 } from "@security-alliance/stix/dist/2.1/types.js";
+import {
+    CaseIncident as StixCaseIncident,
+    CryptocurrencyWallet as StixCryptocurrencyWallet,
+    CaseRfi as StixCaseRfi,
+    CaseRft as StixCaseRft,
+} from "./stix/types.js";
+
+export * from "./stix/opencti.js";
+
+export type StixToOCTI<EntityType extends string, T extends { id: string }> = Omit<T, "id"> & {
+    entity_type: EntityType;
+
+    id: string;
+    standard_id: T["id"];
+
+    objectMarking: Marking[];
+    objectLabel: Label[];
+};
 
 export type Work = {
     id: string;
@@ -57,23 +75,29 @@ export type Label = {
 export type LabelEdge = {
     node: Label;
 };
-
-export type Identity = StixToOCTI<StixIdentity> & {
-    entity_type: "Identity";
-
-    identity_class: IdentityClassOv;
-};
-
 export type RelatedToEntity = {
     id: string;
     entity_type: "related-to";
 };
 
-export type Incident = {
-    id: string;
-    standard_id: string;
-    name: string;
+//#region domain object
+export type Identity = StixToOCTI<"Identity", StixIdentity>;
+export type Incident = StixToOCTI<"Incident", StixIncident>;
+export type CaseIncident = StixToOCTI<"Case-Incident", StixCaseIncident>;
+
+export type Indicator = StixToOCTI<"Indicator", StixIndicator> & {
+    x_opencti_score: number;
+    x_opencti_detection: boolean;
+    x_opencti_main_observable_type: string;
+    x_mitre_platforms: string[];
+
+    observables: Edges<Observable>;
 };
+
+export type CaseRft = StixToOCTI<"Case-Rft", StixCaseRfi>;
+
+export type CaseRfi = StixToOCTI<"Case-Rfi", StixCaseRfi>;
+//#endregion
 
 export type Marking = {
     id: string;
@@ -88,37 +112,6 @@ export type Marking = {
 export type Me = {
     id: string;
     allowed_marking: Marking[];
-};
-
-export type StixCyberObservableAdd = {
-    id: string;
-    standard_id: string;
-    entity_type: string;
-    parent_types: string[];
-    observable_value: string;
-    created_at: string;
-    createdBy: null;
-};
-
-export type IndicatorAddInput = {
-    name: string;
-    description?: string;
-    indicator_types?: string[];
-    pattern: string;
-    pattern_type: string;
-    createObservables?: boolean;
-    x_opencti_main_observable_type: string;
-    x_mitre_platforms?: string[];
-    createdBy?: string;
-    confidence?: number;
-    x_opencti_score?: number;
-    x_opencti_detection?: boolean;
-    objectMarking?: string[];
-    objectLabel?: string[];
-    validFrom?: Date;
-    validTo?: Date;
-    killChainPhases?: string[];
-    externalReferences?: string[];
 };
 
 export type Edges<T> = {
@@ -162,49 +155,19 @@ export type Individual = {
     objectLabel: Label[];
 };
 
-export type OCTIStixCyberObservable = {
-    id: string;
-    standard_id: string;
-    entity_type: string;
-
+//#region observables
+export type Observable<
+    Type extends string = string,
+    Base extends StixCyberObservableObject = StixCyberObservableObject,
+> = StixToOCTI<Type, Base> & {
     observable_value: string;
-
-    objectLabel: Label[];
-
-    x_opencti_score: number;
-    x_opencti_description: string;
 };
 
-export type DomainName = StixToOCTI<StixDomainName> &
-    OCTIStixCyberObservable & {
-        entity_type: "Domain-Name";
+export type DomainName = Observable<"Domain-Name", StixDomainName>;
 
-        value: string;
-    };
+export type CryptocurrencyWallet = Observable<"Cryptocurrency-Wallet", StixCryptocurrencyWallet>;
 
-export type CryptocurrencyWallet = OCTIStixCyberObservable & {
-    entity_type: "Cryptocurrency-Wallet";
-
-    value: string;
-};
-
-export type StixToOCTI<T extends { id: unknown }> = Omit<T, "id"> & {
-    id: string;
-    standard_id: T["id"];
-
-    objectMarking: Marking[];
-};
-
-export type Indicator = StixToOCTI<StixIndicator> & {
-    entity_type: "Indicator";
-
-    x_opencti_score: number;
-    x_opencti_detection: boolean;
-    x_opencti_main_observable_type: string;
-    x_mitre_platforms: string[];
-
-    observables: Edges<OCTIStixCyberObservable>;
-};
+//#endregion
 
 export type ID = string;
 
@@ -220,114 +183,3 @@ export type StixCyberObservableAddInput = {
     objectLabel?: string[]; // can be plaintext
     externalReferences?: string[];
 };
-
-export type StixCoreObjectEditRelationDeleteInput = {
-    id: NonNullable<ID>;
-    toId: NonNullable<StixRef>;
-    relationship_type: string;
-    commit_message?: string;
-    references?: string;
-};
-
-export type IdentityType = "Individual" | "Organization" | "System";
-
-export type IndicatorCreationInput = {
-    name: string;
-    description?: string;
-    confidence?: number;
-    indicator_types: string[];
-    pattern: string;
-    pattern_type: string;
-    x_opencti_main_observable_type: string;
-    createObservables: boolean;
-    x_mitre_platforms: string[];
-    valid_from: Date | null;
-    valid_until: Date | null;
-    createdBy?: string;
-    objectMarking: string[];
-    killChainPhases: string[];
-    objectLabel: string[];
-    externalReferences: string[];
-    x_opencti_detection: boolean;
-    x_opencti_score: number;
-    file: File | undefined;
-};
-
-export type IndividualAddInput = {
-    name: string;
-    description?: string;
-    confidence?: number;
-    objectMarking?: string[];
-    objectLabel?: string[];
-};
-
-export type CaseRfiAddInput = {
-    name: string;
-    description?: string;
-    confidence: number;
-    created: Date;
-    createdBy?: string;
-    content?: string;
-    caseTemplates?: string[];
-    externalReferences?: string[];
-    objectAssignee?: string[];
-    objectMarking?: string[];
-    objectLabel?: string[];
-    objectParticipant?: string[];
-    priority?: string;
-    severity?: string;
-    information_types?: string[];
-};
-
-export type CaseRftAddInput = {
-    name: string;
-    description?: string;
-    confidence: number;
-    created: Date;
-    createdBy?: string;
-    content?: string;
-    caseTemplates?: string[];
-    externalReferences?: string[];
-    objectAssignee?: string[];
-    objectMarking?: string[];
-    objectLabel?: string[];
-    objectParticipant?: string[];
-    priority?: string;
-    severity?: string;
-    takedown_types?: string[];
-};
-
-export type CaseRft = {
-    entity_type: "Case-Rft";
-    id: string;
-    standard_id: `case-rft--${string}`;
-    name: string;
-    description: string;
-};
-
-export type CaseRfi = {
-    entity_type: "Case-Rfi";
-    id: string;
-    standard_id: `case-rfi--${string}`;
-    name: string;
-    description: string;
-};
-
-//#region filters
-// https://github.com/OpenCTI-Platform/opencti/blob/master/opencti-platform/opencti-front/src/utils/filters/filtersHelpers-types.ts
-export type FilterValue = any;
-
-export type FilterGroup = {
-    mode: string;
-    filters: Filter[];
-    filterGroups: FilterGroup[];
-};
-
-export type Filter = {
-    id?: string;
-    key: string; // key is a string in front
-    values: FilterValue[];
-    operator?: string;
-    mode?: string;
-};
-//#endregion

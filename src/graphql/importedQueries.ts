@@ -46,6 +46,23 @@ export const IncidentCreationMutation = gql`
 `;
 //#endregion
 
+//#region incident response
+export const CaseIncidentCreationCaseMutation = gql`
+    mutation CaseIncidentCreationCaseMutation($input: CaseIncidentAddInput!) {
+        caseIncidentAdd(input: $input) {
+            id
+            standard_id
+            entity_type
+            parent_types
+            name
+            description
+            response_types
+            ...CaseIncidentLineCase_node
+        }
+    }
+`;
+//#endregion
+
 //#region observables
 export const RootStixCyberObservableQuery = gql`
     query RootStixCyberObservableQuery($id: String!) {
@@ -179,6 +196,292 @@ export const StixCyberObservablePopoverDeletionMutation = gql`
     mutation StixCyberObservablePopoverDeletionMutation($id: ID!) {
         stixCyberObservableEdit(id: $id) {
             delete
+        }
+    }
+`;
+
+export const StixCyberObservableEditionOverviewRelationAddMutation = gql`
+    mutation StixCyberObservableEditionOverviewRelationAddMutation($id: ID!, $input: StixRefRelationshipAddInput!) {
+        stixCyberObservableEdit(id: $id) {
+            relationAdd(input: $input) {
+                from {
+                    __typename
+                    ...StixCyberObservableEditionOverview_stixCyberObservable
+                    ... on AdministrativeArea {
+                        id
+                    }
+                    ... on Artifact {
+                        id
+                    }
+                    ... on AttackPattern {
+                        id
+                    }
+                    ... on AutonomousSystem {
+                        id
+                    }
+                    ... on BankAccount {
+                        id
+                    }
+                    ... on Campaign {
+                        id
+                    }
+                    ... on CaseIncident {
+                        id
+                    }
+                    ... on CaseRfi {
+                        id
+                    }
+                    ... on CaseRft {
+                        id
+                    }
+                    ... on CaseTemplate {
+                        id
+                    }
+                    ... on Channel {
+                        id
+                    }
+                    ... on City {
+                        id
+                    }
+                    ... on Country {
+                        id
+                    }
+                    ... on CourseOfAction {
+                        id
+                    }
+                    ... on Creator {
+                        id
+                    }
+                    ... on Credential {
+                        id
+                    }
+                    ... on CryptocurrencyWallet {
+                        id
+                    }
+                    ... on CryptographicKey {
+                        id
+                    }
+                    ... on CsvMapper {
+                        id
+                    }
+                    ... on DataComponent {
+                        id
+                    }
+                    ... on DataSource {
+                        id
+                    }
+                    ... on Directory {
+                        id
+                    }
+                    ... on DomainName {
+                        id
+                    }
+                    ... on EmailAddr {
+                        id
+                    }
+                    ... on EmailMessage {
+                        id
+                    }
+                    ... on EmailMimePartType {
+                        id
+                    }
+                    ... on EntitySetting {
+                        id
+                    }
+                    ... on Event {
+                        id
+                    }
+                    ... on ExternalReference {
+                        id
+                    }
+                    ... on Feedback {
+                        id
+                    }
+                    ... on Group {
+                        id
+                    }
+                    ... on Grouping {
+                        id
+                    }
+                    ... on Hostname {
+                        id
+                    }
+                    ... on IPv4Addr {
+                        id
+                    }
+                    ... on IPv6Addr {
+                        id
+                    }
+                    ... on Incident {
+                        id
+                    }
+                    ... on Indicator {
+                        id
+                    }
+                    ... on Individual {
+                        id
+                    }
+                    ... on Infrastructure {
+                        id
+                    }
+                    ... on IntrusionSet {
+                        id
+                    }
+                    ... on KillChainPhase {
+                        id
+                    }
+                    ... on Label {
+                        id
+                    }
+                    ... on Language {
+                        id
+                    }
+                    ... on MacAddr {
+                        id
+                    }
+                    ... on Malware {
+                        id
+                    }
+                    ... on MalwareAnalysis {
+                        id
+                    }
+                    ... on ManagerConfiguration {
+                        id
+                    }
+                    ... on MarkingDefinition {
+                        id
+                    }
+                    ... on MediaContent {
+                        id
+                    }
+                    ... on Mutex {
+                        id
+                    }
+                    ... on Narrative {
+                        id
+                    }
+                    ... on NetworkTraffic {
+                        id
+                    }
+                    ... on Note {
+                        id
+                    }
+                    ... on ObservedData {
+                        id
+                    }
+                    ... on Opinion {
+                        id
+                    }
+                    ... on Organization {
+                        id
+                    }
+                    ... on PaymentCard {
+                        id
+                    }
+                    ... on PhoneNumber {
+                        id
+                    }
+                    ... on Position {
+                        id
+                    }
+                    ... on Process {
+                        id
+                    }
+                    ... on PublicDashboard {
+                        id
+                    }
+                    ... on Region {
+                        id
+                    }
+                    ... on Report {
+                        id
+                    }
+                    ... on Sector {
+                        id
+                    }
+                    ... on Software {
+                        id
+                    }
+                    ... on Status {
+                        id
+                    }
+                    ... on StixCoreRelationship {
+                        id
+                    }
+                    ... on StixFile {
+                        id
+                    }
+                    ... on StixRefRelationship {
+                        id
+                    }
+                    ... on StixSightingRelationship {
+                        id
+                    }
+                    ... on System {
+                        id
+                    }
+                    ... on Task {
+                        id
+                    }
+                    ... on Text {
+                        id
+                    }
+                    ... on ThreatActorGroup {
+                        id
+                    }
+                    ... on ThreatActorIndividual {
+                        id
+                    }
+                    ... on Tool {
+                        id
+                    }
+                    ... on TrackingNumber {
+                        id
+                    }
+                    ... on Url {
+                        id
+                    }
+                    ... on UserAccount {
+                        id
+                    }
+                    ... on UserAgent {
+                        id
+                    }
+                    ... on Vulnerability {
+                        id
+                    }
+                    ... on WindowsRegistryKey {
+                        id
+                    }
+                    ... on WindowsRegistryValueType {
+                        id
+                    }
+                    ... on Workspace {
+                        id
+                    }
+                    ... on X509Certificate {
+                        id
+                    }
+                }
+                id
+            }
+        }
+    }
+`;
+
+export const StixCyberObservableEditionOverviewRelationDeleteMutation = gql`
+    mutation StixCyberObservableEditionOverviewRelationDeleteMutation(
+        $id: ID!
+        $toId: StixRef!
+        $relationship_type: String!
+    ) {
+        stixCyberObservableEdit(id: $id) {
+            relationDelete(toId: $toId, relationship_type: $relationship_type) {
+                __typename
+                ...StixCyberObservableEditionOverview_stixCyberObservable
+                ...StixCyberObservable_stixCyberObservable
+                id
+            }
         }
     }
 `;
@@ -5513,5 +5816,151 @@ export const FileManagerAskJobImportMutation = gql`
 export const WorkbenchFileLineDeleteMutation = gql`
     mutation WorkbenchFileLineDeleteMutation($fileName: String) {
         deleteImport(fileName: $fileName)
+    }
+`;
+
+export const StixDomainObjectsLinesSearchQuery = gql`
+    query StixDomainObjectsLinesSearchQuery($search: String, $types: [String], $count: Int, $filters: FilterGroup) {
+        stixDomainObjects(search: $search, types: $types, first: $count, filters: $filters) {
+            edges {
+                node {
+                    __typename
+                    id
+                    entity_type
+                    standard_id
+                    ... on AttackPattern {
+                        name
+                        description
+                        x_mitre_id
+                    }
+                    ... on Note {
+                        attribute_abstract
+                        content
+                    }
+                    ... on ObservedData {
+                        name
+                        first_observed
+                        last_observed
+                    }
+                    ... on Opinion {
+                        opinion
+                    }
+                    ... on Report {
+                        name
+                    }
+                    ... on Grouping {
+                        name
+                        description
+                    }
+                    ... on Campaign {
+                        name
+                        description
+                    }
+                    ... on CourseOfAction {
+                        name
+                        description
+                    }
+                    ... on Individual {
+                        name
+                        description
+                    }
+                    ... on Organization {
+                        name
+                        description
+                    }
+                    ... on Sector {
+                        name
+                        description
+                    }
+                    ... on System {
+                        name
+                        description
+                    }
+                    ... on Indicator {
+                        name
+                        description
+                    }
+                    ... on Infrastructure {
+                        name
+                        description
+                    }
+                    ... on IntrusionSet {
+                        name
+                        description
+                    }
+                    ... on Position {
+                        name
+                        description
+                    }
+                    ... on City {
+                        name
+                        description
+                    }
+                    ... on CaseIncident {
+                        name
+                        description
+                    }
+                    ... on CaseRfi {
+                        name
+                        description
+                    }
+                    ... on CaseRft {
+                        name
+                        description
+                    }
+                    ... on Task {
+                        name
+                        description
+                    }
+                    ... on AdministrativeArea {
+                        name
+                        description
+                    }
+                    ... on Country {
+                        name
+                        description
+                    }
+                    ... on Region {
+                        name
+                        description
+                    }
+                    ... on Malware {
+                        name
+                        description
+                    }
+                    ... on ThreatActor {
+                        __isThreatActor: __typename
+                        name
+                        description
+                    }
+                    ... on Tool {
+                        name
+                        description
+                    }
+                    ... on Vulnerability {
+                        name
+                        description
+                    }
+                    ... on Incident {
+                        name
+                        description
+                    }
+                    createdBy {
+                        __typename
+                        __isIdentity: __typename
+                        id
+                        name
+                        entity_type
+                    }
+                    objectMarking {
+                        definition
+                        definition_type
+                        x_opencti_order
+                        x_opencti_color
+                        id
+                    }
+                }
+            }
+        }
     }
 `;

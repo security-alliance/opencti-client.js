@@ -1,5 +1,5 @@
-import { generateBundleId } from "@security-alliance/stix/dist/2.1/identifiers.js";
-import { Bundle } from "@security-alliance/stix/dist/2.1/types.js";
+import { generateBundleId, generateDomainObservableId } from "@security-alliance/stix/dist/2.1/identifiers.js";
+import { DomainName, StixBundle } from "@security-alliance/stix/dist/2.1/types.js";
 import assert, { rejects } from "node:assert";
 import { randomBytes } from "node:crypto";
 import { describe, it } from "node:test";
@@ -7,13 +7,11 @@ import { v4 } from "uuid";
 import { OpenCTIClient } from "../src/index.js";
 import {
     generateCryptocurrencyWalletObservableId,
-    generateDomainObservableId,
     generateIdentityId,
     generateIndicatorId,
     generateLabelId,
-    MARKING_TLP_CLEAR,
-    MARKING_TLP_RED,
-} from "../src/stix.js";
+} from "../src/stix/identifiers.js";
+import { EXTENSION_DEFINITION_OCTI_SDO, MARKING_TLP_CLEAR, MARKING_TLP_RED } from "../src/stix/constants.js";
 import { StixRef } from "../src/types.js";
 
 const client = new OpenCTIClient("https://sealisac.dev", process.env.SEAL_ISAC_API_KEY!);
@@ -28,7 +26,7 @@ describe("Observables", () => {
             standard_id: "" as StixRef,
         };
 
-        expected.standard_id = generateDomainObservableId(expected.observable_value);
+        expected.standard_id = generateDomainObservableId({ value: expected.observable_value });
 
         it("should create a new observable", async () => {
             const existingObservable = await client.getDomainObservable(expected.standard_id);
@@ -40,7 +38,7 @@ describe("Observables", () => {
                 x_opencti_description: expected.x_opencti_description,
             });
 
-            assert.equal(observable.observable_value, expected.observable_value);
+            assert.equal(observable.value, expected.observable_value);
             assert.equal(observable.standard_id, expected.standard_id);
             assert.equal(observable.x_opencti_score, expected.x_opencti_score);
             assert.equal(observable.x_opencti_description, expected.x_opencti_description);
@@ -54,15 +52,21 @@ describe("Observables", () => {
             assert.equal(observable.objectLabel.length, 0);
 
             observable.objectLabel = await client.addLabel(observable.standard_id, [
-                generateLabelId("blocklisted domain"),
+                generateLabelId({ value: "blocklisted domain" }),
             ]);
             assert.equal(observable.objectLabel.length, 1);
             assert.equal(observable.objectLabel[0].value, "blocklisted domain");
 
-            observable.objectLabel = await client.deleteLabel(observable.id, generateLabelId("allowlisted domain"));
+            observable.objectLabel = await client.deleteLabel(
+                observable.id,
+                generateLabelId({ value: "allowlisted domain" }),
+            );
             assert.equal(observable.objectLabel.length, 1);
 
-            observable.objectLabel = await client.deleteLabel(observable.id, generateLabelId("blocklisted domain"));
+            observable.objectLabel = await client.deleteLabel(
+                observable.id,
+                generateLabelId({ value: "blocklisted domain" }),
+            );
             assert.equal(observable.objectLabel.length, 0);
         });
 
@@ -84,7 +88,7 @@ describe("Observables", () => {
             standard_id: "" as StixRef,
         };
 
-        expected.standard_id = generateCryptocurrencyWalletObservableId(expected.observable_value);
+        expected.standard_id = generateCryptocurrencyWalletObservableId({ value: expected.observable_value });
 
         it("should create a new observable", async () => {
             const existingObservable = await client.getCryptocurrencyWalletObservable(expected.standard_id);
@@ -96,7 +100,7 @@ describe("Observables", () => {
                 x_opencti_description: expected.x_opencti_description,
             });
 
-            assert.equal(observable.observable_value, expected.observable_value);
+            assert.equal(observable.value, expected.observable_value);
             assert.equal(observable.standard_id, expected.standard_id);
             assert.equal(observable.x_opencti_score, expected.x_opencti_score);
             assert.equal(observable.x_opencti_description, expected.x_opencti_description);
@@ -128,7 +132,7 @@ describe("Indicators", () => {
         standard_id: "" as StixRef,
     };
 
-    expectedIndicator.standard_id = generateIndicatorId(expectedIndicator.pattern);
+    expectedIndicator.standard_id = generateIndicatorId({ pattern: expectedIndicator.pattern });
 
     it("should create a new indicator", async () => {
         const existingIndicator = await client.getIndicator(expectedIndicator.standard_id);
@@ -239,7 +243,7 @@ describe("Identities", () => {
 
         standard_id: "",
     };
-    expectedIndividual.standard_id = generateIdentityId(name, "individual");
+    expectedIndividual.standard_id = generateIdentityId({ name: name, identity_class: "individual" });
 
     it("should create individual identities", async () => {
         const existingIndividual = await client.getIndividual(expectedIndividual.standard_id);
@@ -274,20 +278,22 @@ describe("Import", () => {
             randomDomains.push(`${v4()}.invalid`);
         }
 
-        const observable = await client.getDomainObservable(generateDomainObservableId(randomDomains[0]));
+        const observable = await client.getDomainObservable(generateDomainObservableId({ value: randomDomains[0] }));
         assert.equal(observable, null);
 
-        const bundle: Bundle = {
+        const bundle: StixBundle = {
             type: "bundle",
-            id: generateBundleId() as `bundle--${string}`,
+            id: generateBundleId(),
             objects: randomDomains.map((domain) => {
                 return {
                     type: "domain-name",
-                    id: generateDomainObservableId(domain),
+                    id: generateDomainObservableId({ value: domain }),
                     value: domain,
                     x_opencti_labels: ["drainer"],
-                };
+                    x_opencti_score: 100,
+                } satisfies DomainName;
             }),
+            x_opencti_score: 0,
         };
 
         const result = (await client.importSTIXBundle(bundle))!;
@@ -300,7 +306,9 @@ describe("Import", () => {
         await client.deleteFile(result.id);
         console.log("deleted file");
 
-        const existsObservable = await client.getDomainObservable(generateDomainObservableId(randomDomains[0]));
+        const existsObservable = await client.getDomainObservable(
+            generateDomainObservableId({ value: randomDomains[0] }),
+        );
         assert.notEqual(existsObservable, null);
     });
 });

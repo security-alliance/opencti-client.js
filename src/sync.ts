@@ -3,7 +3,60 @@ import EventSource from "eventsource";
 import { sleep } from "./utils.js";
 import { Deque } from "@blakeembrey/deque";
 import { readFile, rename, writeFile } from "fs/promises";
-import { StixObject } from "@security-alliance/stix/dist/2.1/types.js";
+import { Identifier, StixObject, StixObjectType, StixObjectTypeMap } from "@security-alliance/stix/dist/2.1/types.js";
+import { Operation } from "fast-json-patch";
+
+export type UserEventOrigin = {
+    socket: string;
+    ip: string;
+    user_id: string;
+    group_ids: string[];
+    organization_ids: string[];
+    user_metadata: Record<string, any>;
+};
+
+export type SyntheticEventOrigin = {
+    referer: string;
+};
+
+export type EventOrigin = UserEventOrigin | SyntheticEventOrigin;
+
+export type CreateStreamEvent = {
+    data: StixObject;
+    message: string;
+    origin: EventOrigin;
+};
+
+export type UpdateStreamEvent = {
+    data: StixObject;
+    message: string;
+    origin: EventOrigin;
+    context: {
+        patch: Operation[];
+        reverse_patch: Operation[];
+    };
+};
+
+export type DeleteStreamEvent = {
+    data: StixObject;
+    message: string;
+    origin: EventOrigin;
+};
+
+export type MergeStreamEvent = unknown;
+
+export type ReconnectingStreamEvent = {
+    reason: string;
+};
+
+export type ConnectedStreamEvent = {
+    lastEventId: string;
+    firstEventId: string;
+    firstEventDate: string;
+    lastEventDate: string;
+    streamSize: number;
+    connectionId: string;
+};
 
 export type OpenCTIStreamState = {
     objects: Map<string, any>;
@@ -33,15 +86,15 @@ export interface OpenCTIStreamStateManager {
 
     getLastEventId(): string | undefined;
 
-    getObjects(): Record<string, StixObject>;
-    getObject(id: string): StixObject | undefined;
+    getObjects(): Record<Identifier, StixObject>;
+    getObject<T extends StixObjectType>(id: Identifier<T>): StixObjectTypeMap[T] | undefined;
 
     commitChange(event: StateUpdateEvent, ready: boolean): Promise<void>;
 }
 
 export class InMemoryOpenCTIStreamStateManager implements OpenCTIStreamStateManager {
     protected lastEventId: string;
-    protected objects: Record<string, StixObject>;
+    protected objects: Record<Identifier, StixObject>;
 
     constructor() {
         this.lastEventId = "0-0";
@@ -58,8 +111,8 @@ export class InMemoryOpenCTIStreamStateManager implements OpenCTIStreamStateMana
         return this.objects;
     }
 
-    getObject(id: string): StixObject | undefined {
-        return this.objects[id];
+    getObject<T extends StixObjectType>(id: Identifier<T>): StixObjectTypeMap[T] | undefined {
+        return this.objects[id] as StixObjectTypeMap[T];
     }
 
     async commitChange(event: StateUpdateEvent, ready: boolean): Promise<void> {
@@ -134,7 +187,7 @@ export class FilesystemOpenCTIStreamStateManager extends InMemoryOpenCTIStreamSt
     }
 }
 
-export type OpenCTIStreamClientOptions = {
+export type OpenCTIStreamOptions = {
     signal?: AbortSignal;
     state?: OpenCTIStreamStateManager;
     noDependencies?: boolean;
@@ -144,7 +197,29 @@ export type OpenCTIStreamClientOptions = {
     authorization?: string;
 };
 
-export class OpenCTIStreamClient extends EventEmitter {
+export declare interface OpenCTIStream {
+    emit(event: "create", args: CreateStreamEvent): boolean;
+    emit(event: "update", args: UpdateStreamEvent): boolean;
+    emit(event: "delete", args: DeleteStreamEvent): boolean;
+    emit(event: "merge", args: MergeStreamEvent): boolean;
+    emit(event: "reconnecting", args: ReconnectingStreamEvent): boolean;
+    emit(event: "connected", args: ConnectedStreamEvent): boolean;
+    emit(event: "ready", args: {}): boolean;
+    emit(event: "error", args: Error): boolean;
+
+    on(event: "create", listener: (e: CreateStreamEvent) => void): this;
+    on(event: "update", listener: (e: UpdateStreamEvent) => void): this;
+    on(event: "delete", listener: (e: DeleteStreamEvent) => void): this;
+    on(event: "merge", listener: (e: MergeStreamEvent) => void): this;
+    on(event: "reconnecting", listener: (e: ReconnectingStreamEvent) => void): this;
+    on(event: "connected", listener: (e: ConnectedStreamEvent) => void): this;
+    on(event: "ready", listener: (e: {}) => void): this;
+    on(event: "error", listener: (e: Error) => void): this;
+
+    on(event: string, listener: Function): this;
+}
+
+export class OpenCTIStream extends EventEmitter {
     stream: URL;
     noDependencies: boolean;
     noDelete: boolean;
@@ -167,7 +242,7 @@ export class OpenCTIStreamClient extends EventEmitter {
 
     eventQueue: Deque<StateUpdateEvent>;
 
-    constructor(stream: URL, options?: OpenCTIStreamClientOptions) {
+    constructor(stream: URL, options?: OpenCTIStreamOptions) {
         super();
 
         this.stream = stream;
@@ -213,7 +288,7 @@ export class OpenCTIStreamClient extends EventEmitter {
             }
 
             if (this.eventSource.readyState === EventSource.CLOSED) {
-                this.emit("error", "liveness checker detected closed event source");
+                this.emit("error", new Error("liveness checker detected closed event source"));
                 clearInterval(this.livenessChecker);
                 return;
             }
@@ -230,9 +305,11 @@ export class OpenCTIStreamClient extends EventEmitter {
         this.eventSource = undefined;
 
         const eventSource = new EventSource(this.constructStreamUrl(), {
-            headers: this.authorization ? {
-                'Authorization': `Bearer ${this.authorization}`
-            } : {}
+            headers: this.authorization
+                ? {
+                      Authorization: `Bearer ${this.authorization}`,
+                  }
+                : {},
         });
 
         eventSource.addEventListener("error", (e) => {
@@ -241,7 +318,7 @@ export class OpenCTIStreamClient extends EventEmitter {
 
             eventSource.close();
 
-            let reconnectReason: string = "unknown";
+            let reconnectReason: string;
 
             // this is really hacky, maybe too smart for its own good
             // just checking all the ways that an error may be emitted
@@ -250,7 +327,7 @@ export class OpenCTIStreamClient extends EventEmitter {
                 const statusCode = (e as any).statusCode;
                 if (statusCode !== 500 && statusCode !== 502 && statusCode !== 503 && statusCode !== 504) {
                     // we can't reconnect if we receive anything that isn't a temporary server failure
-                    this.emit("error", `unexpected http response code: ${statusCode}`);
+                    this.emit("error", new Error(`unexpected http response code: ${statusCode}`));
                     return;
                 }
 
@@ -259,6 +336,8 @@ export class OpenCTIStreamClient extends EventEmitter {
                 const message = (e as any).message;
                 if (message !== undefined) {
                     reconnectReason = message;
+                } else {
+                    reconnectReason = "connection closed";
                 }
             } else {
                 reconnectReason = "server closed the connection";
@@ -268,14 +347,7 @@ export class OpenCTIStreamClient extends EventEmitter {
         });
 
         eventSource.addEventListener("connected", (e) => {
-            const body = JSON.parse(e.data) as {
-                lastEventId: string;
-                firstEventId: string;
-                firstEventDate: string;
-                lastEventDate: string;
-                streamSize: number;
-                connectionId: string;
-            };
+            const body = JSON.parse(e.data) as ConnectedStreamEvent;
 
             this.connectionId = body.connectionId;
             this.initialLastEventId = body.lastEventId;
@@ -292,7 +364,7 @@ export class OpenCTIStreamClient extends EventEmitter {
         const handleEvent = (event: MessageEvent) => {
             const updateType = event.type;
             if (!isValidUpdateType(updateType)) {
-                this.emit("error", `invalid update type: ${updateType}`);
+                this.emit("error", new Error(`invalid update type: ${updateType}`));
                 return;
             }
 
@@ -323,12 +395,32 @@ export class OpenCTIStreamClient extends EventEmitter {
 
             await this.state.commitChange(event, this.ready);
 
-            if (event.updateType !== "heartbeat") {
-                try {
-                    this.emit(event.updateType, event);
-                } catch (e) {
-                    console.log(e);
-                }
+            switch (event.updateType) {
+                case "create":
+                    this.emit("create", {
+                        data: event.body.data,
+                        origin: event.body.origin,
+                        message: event.body.message,
+                    });
+                    break;
+                case "update":
+                    this.emit("update", {
+                        data: event.body.data,
+                        origin: event.body.origin,
+                        message: event.body.message,
+                        context: event.body.context,
+                    });
+                    break;
+                case "delete":
+                    this.emit("delete", {
+                        data: event.body.data,
+                        origin: event.body.origin,
+                        message: event.body.message,
+                    });
+                    break;
+                case "merge":
+                    this.emit("merge", event.body);
+                    break;
             }
 
             if (!this.ready) {

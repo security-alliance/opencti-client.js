@@ -10,5 +10,5 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true
     },
-    "include": ["**/*.ts", "**/*.tsx"]
+    "include": ["**/*.d.ts", "**/*.ts", "**/*.tsx"]
 }

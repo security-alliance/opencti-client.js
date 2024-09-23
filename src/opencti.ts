@@ -6,11 +6,12 @@ import {
     InMemoryCache,
     NormalizedCacheObject,
 } from "@apollo/client/core/index.js";
-import { Bundle } from "@security-alliance/stix/dist/2.1/types.js";
+import { StixBundle } from "@security-alliance/stix/dist/2.1/types.js";
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { UUID } from "crypto";
 import { GraphQLError } from "./errors.js";
 import {
+    CaseIncidentLineCase_node,
     EntityStixCoreRelationshipLineAll_node,
     FileExportViewer_entity,
     FileExternalReferencesViewer_entity,
@@ -38,13 +39,15 @@ import {
     StixCoreObjectContent_stixCoreObject,
     StixCyberObservable_stixCyberObservable,
     StixCyberObservableDetails_stixCyberObservable,
+    StixCyberObservableEditionOverview_stixCyberObservable,
     StixCyberObservableHeader_stixCyberObservable,
     StixCyberObservableIndicators_stixCyberObservable,
     StixCyberObservableKnowledge_stixCyberObservable,
     WorkbenchFileLine_file,
     WorkbenchFileViewer_entity,
-} from "./fragments.js";
+} from "./graphql/fragments.js";
 import {
+    CaseIncidentCreationCaseMutation,
     CaseRfiCreationCaseMutation,
     CaseRfiEditionOverviewCaseFieldPatchMutation,
     CaseRftCreationCaseMutation,
@@ -78,32 +81,44 @@ import {
     StixCoreObjectOrStixRelationshipLastContainersQuery,
     StixCoreRelationshipCreationFromEntityToMutation,
     StixCyberObservableCreationMutation,
+    StixCyberObservableEditionOverviewRelationAddMutation,
+    StixCyberObservableEditionOverviewRelationDeleteMutation,
     StixCyberObservablePopoverDeletionMutation,
+    StixDomainObjectsLinesSearchQuery,
     WorkbenchFileContentMutation,
     WorkbenchFileLineDeleteMutation,
-} from "./importedQueries.js";
+} from "./graphql/importedQueries.js";
+import { GetFileQuery } from "./graphql/queries.js";
 import {
-    CaseRfi,
+    CaseIncidentAddInput,
     CaseRfiAddInput,
-    CaseRft,
     CaseRftAddInput,
+    FilterGroup,
+    IdentityType,
+    IncidentAddInput,
+    IndicatorAddInput,
+    IndividualAddInput,
+    StixCoreRelationshipAddInput,
+    StixRefRelationshipAddInput,
+} from "./graphql/types.js";
+import { OpenCTIStream, OpenCTIStreamOptions } from "./sync.js";
+import {
+    CaseIncident,
+    CaseRfi,
+    CaseRft,
     CryptocurrencyWallet,
     DomainName,
     Edges,
-    FilterGroup,
+    File,
     ID,
     Identity,
-    IdentityType,
     ImportContentQueryResult,
     Incident,
     Indicator,
-    IndicatorAddInput,
     Individual,
-    IndividualAddInput,
     Label,
     Me,
-    OCTIStixCyberObservable,
-    File,
+    Observable,
     Profile,
     RelatedToEntity,
     StixCyberObservableAddInput,
@@ -111,12 +126,17 @@ import {
     Vocabulary,
 } from "./types.js";
 import { sleep } from "./utils.js";
-import { GetFileQuery } from "./queries.js";
 
 export class OpenCTIClient {
+    private host: string;
+    private apiKey: string;
+
     private client: ApolloClient<NormalizedCacheObject>;
 
     constructor(host: string, apiKey: string) {
+        this.host = host.endsWith("/") ? host.substring(0, host.length - 1) : host;
+        this.apiKey = apiKey;
+
         this.client = new ApolloClient({
             cache: new InMemoryCache({
                 fragments: createFragmentRegistry(
@@ -125,6 +145,7 @@ export class OpenCTIClient {
                     StixCyberObservableDetails_stixCyberObservable,
                     StixCyberObservableIndicators_stixCyberObservable,
                     StixCyberObservableKnowledge_stixCyberObservable,
+                    StixCyberObservableEditionOverview_stixCyberObservable,
 
                     FileExportViewer_entity,
                     FileExternalReferencesViewer_entity,
@@ -150,6 +171,8 @@ export class OpenCTIClient {
                     IncidentKnowledge_incident,
                     IncidentLine_node,
 
+                    CaseIncidentLineCase_node,
+
                     Indicator_indicator,
                     IndicatorDetails_indicator,
                     IndicatorObservables_indicator,
@@ -160,7 +183,7 @@ export class OpenCTIClient {
                 ),
             }),
             link: createUploadLink({
-                uri: `${host}/graphql`,
+                uri: `${this.host}/graphql`,
                 headers: {
                     authorization: `Bearer ${apiKey}`,
                 },
@@ -209,26 +232,7 @@ export class OpenCTIClient {
         const result = await this.client.mutate<{ indicatorAdd: Indicator }>({
             mutation: IndicatorCreationMutation,
             variables: {
-                input: {
-                    name: input.name,
-                    description: input.description,
-                    indicator_types: input.indicator_types,
-                    pattern: input.pattern,
-                    pattern_type: input.pattern_type,
-                    createObservables: input.createObservables,
-                    x_opencti_main_observable_type: input.x_opencti_main_observable_type,
-                    x_mitre_platforms: input.x_mitre_platforms,
-                    confidence: input.confidence,
-                    x_opencti_score: input.x_opencti_score,
-                    x_opencti_detection: input.x_opencti_detection,
-                    valid_from: input.validFrom?.toISOString(),
-                    valid_until: input.validTo?.toISOString(),
-                    killChainPhases: input.killChainPhases,
-                    createdBy: input.createdBy,
-                    objectMarking: input.objectMarking,
-                    objectLabel: input.objectLabel,
-                    externalReferences: input.externalReferences,
-                },
+                input: input,
             },
         });
 
@@ -339,23 +343,7 @@ export class OpenCTIClient {
         const result = await this.client.mutate<{ caseRfiAdd: CaseRfi }>({
             mutation: CaseRfiCreationCaseMutation,
             variables: {
-                input: {
-                    name: input.name,
-                    description: input.description,
-                    content: input.content,
-                    created: input.created.toISOString(),
-                    information_types: input.information_types,
-                    severity: input.severity,
-                    priority: input.priority,
-                    caseTemplates: input.caseTemplates,
-                    confidence: input.confidence,
-                    objectAssignee: input.objectAssignee,
-                    objectParticipant: input.objectParticipant,
-                    objectMarking: input.objectMarking,
-                    objectLabel: input.objectLabel,
-                    externalReferences: input.externalReferences,
-                    createdBy: input.createdBy,
-                },
+                input: input,
             },
         });
 
@@ -383,23 +371,7 @@ export class OpenCTIClient {
         const result = await this.client.mutate<{ caseRftAdd: CaseRft }>({
             mutation: CaseRftCreationCaseMutation,
             variables: {
-                input: {
-                    name: input.name,
-                    description: input.description,
-                    content: input.content,
-                    created: input.created.toISOString(),
-                    takedown_types: input.takedown_types,
-                    severity: input.severity,
-                    priority: input.priority,
-                    caseTemplates: input.caseTemplates,
-                    confidence: input.confidence,
-                    objectAssignee: input.objectAssignee,
-                    objectParticipant: input.objectParticipant,
-                    objectMarking: input.objectMarking,
-                    objectLabel: input.objectLabel,
-                    externalReferences: input.externalReferences,
-                    createdBy: input.createdBy,
-                },
+                input: input,
             },
         });
 
@@ -455,19 +427,23 @@ export class OpenCTIClient {
         return this.assertMutateResult(results).stixDomainObjectEdit.fieldPatch;
     }
 
-    public async addRelationshipToContainer(containerId: UUID, toId: UUID, relationshipType: "object") {
-        const results = await this.client.mutate({
+    public async addRelationshipToContainer(
+        id: string,
+        input: StixRefRelationshipAddInput,
+        commitMessage?: string,
+        references?: string[],
+    ) {
+        const results = await this.client.mutate<{ containerEdit: { relationAdd: { id: string; to: any } } }>({
             mutation: ContainerAddStixCoreObjectsLinesRelationAddMutation,
             variables: {
-                id: containerId,
-                input: {
-                    toId: toId,
-                    relationship_type: relationshipType,
-                },
+                id: id,
+                input: input,
+                commitMessage: commitMessage,
+                references: references,
             },
         });
 
-        return this.assertMutateResult(results);
+        return this.assertMutateResult(results).containerEdit.relationAdd;
     }
 
     public async removeRelationshipFromContainer(containerId: UUID, toId: UUID, relationshipType: "object") {
@@ -499,8 +475,8 @@ export class OpenCTIClient {
     //#endregion
 
     //#region observables
-    public async getStixCyberObservable(observableId: StixRef): Promise<OCTIStixCyberObservable | null> {
-        const result = await this.client.query<{ stixCyberObservable: OCTIStixCyberObservable }>({
+    public async getStixCyberObservable(observableId: StixRef): Promise<Observable | null> {
+        const result = await this.client.query<{ stixCyberObservable: Observable }>({
             query: RootStixCyberObservableQuery,
             variables: {
                 id: observableId,
@@ -510,12 +486,12 @@ export class OpenCTIClient {
         return this.assertQueryResult(result).stixCyberObservable;
     }
 
-    public async createStixCyberObservable(
-        type: string,
+    public async createStixCyberObservable<T extends string, O>(
+        type: T,
         input: Omit<StixCyberObservableAddInput, "type">,
         observableData: object,
-    ): Promise<OCTIStixCyberObservable> {
-        const result = await this.client.mutate<{ stixCyberObservableAdd: OCTIStixCyberObservable }>({
+    ): Promise<O> {
+        const result = await this.client.mutate<{ stixCyberObservableAdd: O }>({
             mutation: StixCyberObservableCreationMutation,
             variables: {
                 ...observableData,
@@ -545,9 +521,41 @@ export class OpenCTIClient {
         return this.assertMutateResult(result).stixCyberObservableEdit.delete;
     }
 
+    public async addRelationToStixCyberObservable<O extends Observable>(
+        id: StixRef,
+        input: StixRefRelationshipAddInput,
+    ): Promise<O> {
+        const result = await this.client.mutate<{ stixCyberObservableEdit: { relationAdd: { id: string; from: O } } }>({
+            mutation: StixCyberObservableEditionOverviewRelationAddMutation,
+            variables: {
+                id: id,
+                input: input,
+            },
+        });
+
+        return this.assertMutateResult(result).stixCyberObservableEdit.relationAdd.from;
+    }
+
+    public async deleteRelationFromStixCyberObservable<O extends Observable>(
+        id: StixRef,
+        toId: string,
+        relationship_type: string,
+    ): Promise<O> {
+        const result = await this.client.mutate<{ stixCyberObservableEdit: { relationDelete: O } }>({
+            mutation: StixCyberObservableEditionOverviewRelationDeleteMutation,
+            variables: {
+                id: id,
+                toId: toId,
+                relationship_type: relationship_type,
+            },
+        });
+
+        return this.assertMutateResult(result).stixCyberObservableEdit.relationDelete;
+    }
+
     public async createCryptocurrencyWalletObservable(
         input: Omit<StixCyberObservableAddInput, "type"> & { address: string },
-    ): Promise<OCTIStixCyberObservable> {
+    ): Promise<CryptocurrencyWallet> {
         return await this.createStixCyberObservable("Cryptocurrency-Wallet", input, {
             CryptocurrencyWallet: {
                 value: input.address,
@@ -557,7 +565,7 @@ export class OpenCTIClient {
 
     public async createDomainObservable(
         input: Omit<StixCyberObservableAddInput, "type"> & { domain: string },
-    ): Promise<OCTIStixCyberObservable> {
+    ): Promise<DomainName> {
         return await this.createStixCyberObservable("Domain-Name", input, {
             DomainName: {
                 value: input.domain,
@@ -573,12 +581,12 @@ export class OpenCTIClient {
         return this.assertObservableType(await this.getStixCyberObservable(id), "Domain-Name");
     }
 
-    private assertObservableType<T>(observable: OCTIStixCyberObservable | null, expected: string): T | null {
+    private assertObservableType<T extends string, O>(observable: Observable<string> | null, expected: T): O | null {
         if (observable === null) return null;
 
         if (observable.entity_type !== expected) throw new Error(`expected ${expected}, got ${observable.entity_type}`);
 
-        return observable as T;
+        return observable as O;
     }
     //#endregion
 
@@ -594,30 +602,11 @@ export class OpenCTIClient {
         return this.assertQueryResult(result).incident;
     }
 
-    public async createIncident(
-        name: string,
-        createdBy: UUID,
-        confidence: number,
-        markings: string[],
-        firstSeen: Date,
-    ): Promise<Incident> {
+    public async createIncident(input: IncidentAddInput): Promise<Incident> {
         const result = await this.client.mutate<{ incidentAdd: Incident }>({
             mutation: IncidentCreationMutation,
             variables: {
-                input: {
-                    name: name,
-                    confidence: confidence,
-                    incident_type: "",
-                    source: "",
-                    description: "",
-                    createdBy: createdBy,
-                    objectMarking: markings,
-                    objectAssignee: [],
-                    objectParticipant: [],
-                    objectLabel: [],
-                    externalReferences: [],
-                    first_seen: firstSeen.toISOString(),
-                },
+                input: input,
             },
         });
 
@@ -625,31 +614,24 @@ export class OpenCTIClient {
     }
     //#endregion
 
-    public async createRelationshipFromEntity(
-        fromId: UUID,
-        toId: UUID,
-        createdBy: UUID,
-        confidence: number,
-        markings: string[],
-        relationshipType: "related-to",
-        startTime: Date,
-    ) {
+    //#region incident responses
+    public async createIncidentResponse(input: CaseIncidentAddInput): Promise<CaseIncident> {
+        const result = await this.client.mutate<{ caseIncidentAdd: CaseIncident }>({
+            mutation: CaseIncidentCreationCaseMutation,
+            variables: {
+                input: input,
+            },
+        });
+
+        return this.assertMutateResult(result).caseIncidentAdd;
+    }
+    //#endregion
+
+    public async createRelationshipFromEntity(input: StixCoreRelationshipAddInput) {
         const result = await this.client.mutate<{ stixCoreRelationshipAdd: RelatedToEntity }>({
             mutation: StixCoreRelationshipCreationFromEntityToMutation,
             variables: {
-                input: {
-                    relationship_type: relationshipType,
-                    confidence: confidence,
-                    start_time: startTime.toISOString(),
-                    stop_time: null,
-                    description: "",
-                    killChainPhases: [],
-                    externalReferences: [],
-                    objectMarking: markings,
-                    createdBy: createdBy,
-                    fromId: fromId,
-                    toId: toId,
-                },
+                input: input,
             },
         });
 
@@ -722,6 +704,25 @@ export class OpenCTIClient {
 
         return this.assertQueryResult(result).vocabularies.edges.map((edge) => edge.node);
     }
+
+    public async searchStixDomainObjects(
+        search: string,
+        types: string[],
+        count: number,
+        filters?: FilterGroup,
+    ): Promise<any[]> {
+        const result = await this.client.query<{ stixDomainObjects: Edges<any> }>({
+            query: StixDomainObjectsLinesSearchQuery,
+            variables: {
+                search: search,
+                types: types,
+                count: count,
+                filters: filters,
+            },
+        });
+
+        return this.assertQueryResult(result).stixDomainObjects.edges.map((edge) => edge.node);
+    }
     //#endregion
 
     //#region labels
@@ -786,7 +787,7 @@ export class OpenCTIClient {
         return this.assertQueryResult(importContentQueryResult);
     }
 
-    public async importSTIXBundle(bundle: Bundle): Promise<File | undefined> {
+    public async importSTIXBundle(bundle: StixBundle): Promise<File | undefined> {
         const importContentQueryResult = await this.getImportContentQuery();
 
         const stixConnector = importContentQueryResult.connectorsForImport.find(
@@ -887,5 +888,34 @@ export class OpenCTIClient {
 
         return result.data;
     }
+
+    public formatUrlForObject(object: { id: string; entity_type: string }): string | undefined {
+        switch (object.entity_type) {
+            case "Incident":
+                return `${this.host}/dashboard/events/incidents/${object.id}`;
+            case "Case-Incident":
+                return `${this.host}/dashboard/cases/incidents/${object.id}`;
+            default:
+                return undefined;
+        }
+    }
+
+    public getPrettyNameForEntity(entity_type: string): string {
+        switch (entity_type) {
+            case "Incident":
+                return "Incident";
+            case "Case-Incident":
+                return "Incident Response";
+            default:
+                return entity_type;
+        }
+    }
     //#endregion
+
+    public openStream(streamId: string, options?: Omit<OpenCTIStreamOptions, "authorization">): OpenCTIStream {
+        return new OpenCTIStream(new URL(`${this.host}/stream/${streamId}`), {
+            ...options,
+            authorization: this.apiKey,
+        });
+    }
 }

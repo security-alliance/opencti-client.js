@@ -1567,6 +1567,87 @@ export const IndicatorEditionOverview_indicator = gql`
 `;
 //#endregion
 
+//#region notes
+export const NoteLine_node = gql`
+    fragment NoteLine_node on Note {
+        id
+        entity_type
+        attribute_abstract
+        content
+        created
+        note_types
+        likelihood
+        confidence
+        createdBy {
+            __typename
+            __isIdentity: __typename
+            id
+            name
+            entity_type
+        }
+        objectMarking {
+            id
+            definition_type
+            definition
+            x_opencti_order
+            x_opencti_color
+        }
+        objectLabel {
+            id
+            value
+            color
+        }
+        creators {
+            id
+            name
+        }
+        status {
+            id
+            order
+            template {
+                name
+                color
+                id
+            }
+        }
+        workflowEnabled
+    }
+`;
+
+export const StixCoreObjectOrStixCoreRelationshipNoteCard_node = gql`
+    fragment StixCoreObjectOrStixCoreRelationshipNoteCard_node on Note {
+        id
+        attribute_abstract
+        entity_type
+        content
+        created
+        modified
+        confidence
+        note_types
+        likelihood
+        createdBy {
+            __typename
+            __isIdentity: __typename
+            id
+            name
+            entity_type
+        }
+        objectMarking {
+            id
+            definition_type
+            definition
+            x_opencti_order
+            x_opencti_color
+        }
+        objectLabel {
+            id
+            value
+            color
+        }
+    }
+`;
+//#endregion
+
 export const EntityStixCoreRelationshipLineAll_node = gql`
     fragment EntityStixCoreRelationshipLineAll_node on StixCoreRelationship {
         id

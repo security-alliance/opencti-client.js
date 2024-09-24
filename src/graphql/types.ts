@@ -259,6 +259,71 @@ export type StixCoreRelationshipAddInput = {
     x_opencti_workflow_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+export type NoteUserAddInput = {
+    attribute_abstract?: InputMaybe<Scalars["String"]["input"]>;
+    clientMutationId?: InputMaybe<Scalars["String"]["input"]>;
+    confidence?: InputMaybe<Scalars["Int"]["input"]>;
+    content: Scalars["String"]["input"];
+    created?: InputMaybe<Scalars["DateTime"]["input"]>;
+    externalReferences?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    lang?: InputMaybe<Scalars["String"]["input"]>;
+    likelihood?: InputMaybe<Scalars["Int"]["input"]>;
+    modified?: InputMaybe<Scalars["DateTime"]["input"]>;
+    note_types?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objectLabel?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objectMarking?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objectOrganization?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objects?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    revoked?: InputMaybe<Scalars["Boolean"]["input"]>;
+    stix_id?: InputMaybe<Scalars["String"]["input"]>;
+    update?: InputMaybe<Scalars["Boolean"]["input"]>;
+    x_opencti_stix_ids?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+};
+
+export type NoteAddInput = {
+    attribute_abstract?: InputMaybe<Scalars["String"]["input"]>;
+    authors?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    clientMutationId?: InputMaybe<Scalars["String"]["input"]>;
+    confidence?: InputMaybe<Scalars["Int"]["input"]>;
+    content: Scalars["String"]["input"];
+    created?: InputMaybe<Scalars["DateTime"]["input"]>;
+    createdBy?: InputMaybe<Scalars["String"]["input"]>;
+    externalReferences?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    file?: InputMaybe<Scalars["Upload"]["input"]>;
+    lang?: InputMaybe<Scalars["String"]["input"]>;
+    likelihood?: InputMaybe<Scalars["Int"]["input"]>;
+    modified?: InputMaybe<Scalars["DateTime"]["input"]>;
+    note_types?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objectLabel?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objectMarking?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objectOrganization?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    objects?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    revoked?: InputMaybe<Scalars["Boolean"]["input"]>;
+    stix_id?: InputMaybe<Scalars["StixId"]["input"]>;
+    update?: InputMaybe<Scalars["Boolean"]["input"]>;
+    x_opencti_stix_ids?: InputMaybe<Array<InputMaybe<Scalars["StixId"]["input"]>>>;
+    x_opencti_workflow_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export enum NotesOrdering {
+    Score = "_score",
+    AttributeAbstract = "attribute_abstract",
+    Created = "created",
+    CreatedBy = "createdBy",
+    CreatedAt = "created_at",
+    Creator = "creator",
+    Modified = "modified",
+    NoteTypes = "note_types",
+    ObjectMarking = "objectMarking",
+    UpdatedAt = "updated_at",
+    XOpenctiWorkflowId = "x_opencti_workflow_id",
+}
+
+export enum OrderingMode {
+    Asc = "asc",
+    Desc = "desc",
+}
+
 export type Filter = {
     key: Array<Scalars["String"]["input"]>;
     mode?: InputMaybe<FilterMode>;

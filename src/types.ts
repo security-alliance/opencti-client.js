@@ -5,6 +5,7 @@ import {
     Identity as StixIdentity,
     Incident as StixIncident,
     Indicator as StixIndicator,
+    Note as StixNote,
 } from "@security-alliance/stix/dist/2.1/types.js";
 import {
     CaseIncident as StixCaseIncident,
@@ -84,6 +85,8 @@ export type RelatedToEntity = {
 export type Identity = StixToOCTI<"Identity", StixIdentity>;
 export type Incident = StixToOCTI<"Incident", StixIncident>;
 export type CaseIncident = StixToOCTI<"Case-Incident", StixCaseIncident>;
+
+export type Note = StixToOCTI<"Note", StixNote>;
 
 export type Indicator = StixToOCTI<"Indicator", StixIndicator> & {
     x_opencti_score: number;

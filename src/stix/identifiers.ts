@@ -34,3 +34,7 @@ export const generateIndicatorId = (props: Any<{ pattern: string }>): Identifier
 export const generateLabelId = (props: Any<{ value: string }>): Identifier<"label"> => {
     return generateDeterministicId("label", { value: props.value });
 };
+
+export const generateNoteId = (props: Any<{ content: string; created: string }>): Identifier<"note"> => {
+    return generateDeterministicId("note", { content: props.content, created: props.created });
+};

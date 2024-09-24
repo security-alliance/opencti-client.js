@@ -630,6 +630,71 @@ export const IndicatorPopoverDeletionMutation = gql`
 `;
 //#endregion
 
+//#region notes
+export const NoteCreationUserMutation = gql`
+    mutation NoteCreationUserMutation($input: NoteUserAddInput!) {
+        userNoteAdd(input: $input) {
+            id
+            standard_id
+            entity_type
+            parent_types
+            attribute_abstract
+            content
+            ...NoteLine_node
+        }
+    }
+`;
+
+export const NoteCreationMutation = gql`
+    mutation NoteCreationMutation($input: NoteAddInput!) {
+        noteAdd(input: $input) {
+            id
+            standard_id
+            entity_type
+            parent_types
+            attribute_abstract
+            content
+            ...NoteLine_node
+        }
+    }
+`;
+
+export const StixCoreObjectOrStixCoreRelationshipNotesCardsQuery = gql`
+    query StixCoreObjectOrStixCoreRelationshipNotesCardsQuery(
+        $count: Int!
+        $orderBy: NotesOrdering
+        $orderMode: OrderingMode
+        $filters: FilterGroup
+    ) {
+        ...StixCoreObjectOrStixCoreRelationshipNotesCards_data_4wlaAN
+    }
+
+    fragment StixCoreObjectOrStixCoreRelationshipNotesCards_data_4wlaAN on Query {
+        notes(first: $count, orderBy: $orderBy, orderMode: $orderMode, filters: $filters) {
+            edges {
+                node {
+                    id
+                    ...StixCoreObjectOrStixCoreRelationshipNoteCard_node
+                    objectMarking {
+                        id
+                        definition_type
+                        definition
+                        x_opencti_order
+                        x_opencti_color
+                    }
+                    __typename
+                }
+                cursor
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+            }
+        }
+    }
+`;
+//#endregion
+
 export const StixCoreRelationshipCreationFromEntityToMutation = gql`
     mutation StixCoreRelationshipCreationFromEntityToMutation($input: StixCoreRelationshipAddInput!) {
         stixCoreRelationshipAdd(input: $input) {

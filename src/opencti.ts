@@ -6,7 +6,7 @@ import {
     InMemoryCache,
     NormalizedCacheObject,
 } from "@apollo/client/core/index.js";
-import { StixBundle } from "@security-alliance/stix/dist/2.1/types.js";
+import { Identifier, StixBundle } from "@security-alliance/stix/dist/2.1/types.js";
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { UUID } from "crypto";
 import { GraphQLError } from "./errors.js";
@@ -34,9 +34,11 @@ import {
     IndividualDetails_individual,
     IndividualKnowledge_individual,
     IndividualLine_node,
+    NoteLine_node,
     PictureManagementUtils_node,
     PictureManagementViewer_entity,
     StixCoreObjectContent_stixCoreObject,
+    StixCoreObjectOrStixCoreRelationshipNoteCard_node,
     StixCyberObservable_stixCyberObservable,
     StixCyberObservableDetails_stixCyberObservable,
     StixCyberObservableEditionOverview_stixCyberObservable,
@@ -68,6 +70,8 @@ import {
     IndividualCreationMutation,
     IndividualPopoverDeletionMutation,
     LabelsQuerySearchQuery,
+    NoteCreationMutation,
+    NoteCreationUserMutation,
     OpenVocabFieldQuery,
     ProfileQuery,
     RootCaseRftCaseQuery,
@@ -78,6 +82,7 @@ import {
     RootStixCyberObservableQuery,
     StixCoreObjectLabelsViewRelationDeleteMutation,
     StixCoreObjectLabelsViewRelationsAddMutation,
+    StixCoreObjectOrStixCoreRelationshipNotesCardsQuery,
     StixCoreObjectOrStixRelationshipLastContainersQuery,
     StixCoreRelationshipCreationFromEntityToMutation,
     StixCyberObservableCreationMutation,
@@ -94,10 +99,16 @@ import {
     CaseRfiAddInput,
     CaseRftAddInput,
     FilterGroup,
+    FilterMode,
+    FilterOperator,
     IdentityType,
     IncidentAddInput,
     IndicatorAddInput,
     IndividualAddInput,
+    NoteAddInput,
+    NotesOrdering,
+    NoteUserAddInput,
+    OrderingMode,
     StixCoreRelationshipAddInput,
     StixRefRelationshipAddInput,
 } from "./graphql/types.js";
@@ -118,6 +129,7 @@ import {
     Individual,
     Label,
     Me,
+    Note,
     Observable,
     Profile,
     RelatedToEntity,
@@ -160,6 +172,9 @@ export class OpenCTIClient {
                     PictureManagementViewer_entity,
                     PictureManagementUtils_node,
                     ImportContent_connectorsImport,
+
+                    NoteLine_node,
+                    StixCoreObjectOrStixCoreRelationshipNoteCard_node,
 
                     Individual_individual,
                     IndividualDetails_individual,
@@ -624,6 +639,57 @@ export class OpenCTIClient {
         });
 
         return this.assertMutateResult(result).caseIncidentAdd;
+    }
+    //#endregion
+
+    //#region notes
+    public async createNote(input: NoteAddInput): Promise<Note> {
+        const results = await this.client.mutate<{ noteAdd: Note }>({
+            mutation: NoteCreationMutation,
+            variables: {
+                input: input,
+            },
+        });
+
+        return this.assertMutateResult(results).noteAdd;
+    }
+
+    public async getNotesForObject(
+        id: string,
+        count: number,
+        orderBy: NotesOrdering,
+        orderMode: OrderingMode,
+    ): Promise<Note[]> {
+        return await this.searchNotes(count, orderBy, orderMode, {
+            mode: FilterMode.And,
+            filterGroups: [],
+            filters: [
+                {
+                    key: ["objects"],
+                    values: [id],
+                    operator: FilterOperator.Eq,
+                },
+            ],
+        });
+    }
+
+    public async searchNotes(
+        count: number,
+        orderBy: NotesOrdering,
+        orderMode: OrderingMode,
+        filters: FilterGroup,
+    ): Promise<Note[]> {
+        const results = await this.client.query<{ notes: Edges<Note> }>({
+            query: StixCoreObjectOrStixCoreRelationshipNotesCardsQuery,
+            variables: {
+                count: count,
+                orderBy: orderBy,
+                orderMode: orderMode,
+                filters: filters,
+            },
+        });
+
+        return this.assertQueryResult(results).notes.edges.map((node) => node.node);
     }
     //#endregion
 

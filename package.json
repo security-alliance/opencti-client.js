@@ -1,6 +1,6 @@
 {
     "name": "@security-alliance/opencti-client",
-    "version": "0.0.16",
+    "version": "0.0.17",
     "description": "OpenCTI client for Security Alliance",
     "main": "opencti.js",
     "types": "opencti.d.ts",
@@ -23,7 +23,7 @@
     "dependencies": {
         "@apollo/client": "^3.10.4",
         "@blakeembrey/deque": "^1.0.5",
-        "@security-alliance/stix": "^0.0.4",
+        "@security-alliance/stix": "^0.0.5",
         "apollo-upload-client": "^18.0.1",
         "eventsource": "^2.0.2",
         "fast-json-patch": "^3.1.1",

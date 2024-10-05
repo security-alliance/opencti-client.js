@@ -758,6 +758,37 @@ export const ProfileQuery = gql`
     }
 `;
 
+export const RootThreatActorGroupQuery = gql`
+  query RootThreatActorGroupQuery($id: String!) {
+    threatActorGroup(id: $id) {
+      id
+      standard_id
+      entity_type
+      name
+      aliases
+      x_opencti_graph_data
+      stixCoreObjectsDistribution(field: "entity_type", operation: count) {
+        label
+        value
+      }
+      ...ThreatActorGroup_ThreatActorGroup
+      ...ThreatActorGroupKnowledge_ThreatActorGroup
+      ...FileImportViewer_entity
+      ...FileExportViewer_entity
+      ...FileExternalReferencesViewer_entity
+      ...WorkbenchFileViewer_entity
+      ...PictureManagementViewer_entity
+      ...StixCoreObjectContent_stixCoreObject
+    }
+    connectorsForImport {
+      ...FileManager_connectorsImport
+    }
+    connectorsForExport {
+      ...FileManager_connectorsExport
+    }
+  }
+`;
+
 export const RootIndividualQuery = gql`
     query RootIndividualQuery($id: String!) {
         individual(id: $id) {
@@ -785,6 +816,19 @@ export const RootIndividualQuery = gql`
         connectorsForExport {
             ...FileManager_connectorsExport
             id
+        }
+    }
+`;
+
+export const ThreatGroupCreationMutation = gql`
+    mutation ThreatActorGroupCreationMutation($input: ThreatActorGroupAddInput!) {
+        threatActorGroupAdd(input: $input) {
+            id
+            standard_id
+            name
+            description
+            entity_type
+            parent_types
         }
     }
 `;

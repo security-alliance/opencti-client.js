@@ -1057,6 +1057,121 @@ export const ImportContent_connectorsImport = gql`
     }
 `;
 
+//#region threatactorgroup
+export const ThreatActorGroup_ThreatActorGroup = gql`
+    fragment ThreatActorGroup_ThreatActorGroup on ThreatActorGroup {
+        id
+        standard_id
+        entity_type
+        x_opencti_stix_ids
+        spec_version
+        revoked
+        confidence
+        created
+        modified
+        created_at
+        updated_at
+        createdBy {
+        ... on Identity {
+            id
+            name
+            entity_type
+            x_opencti_reliability
+        }
+        }
+        creators {
+        id
+        name
+        }
+        objectMarking {
+        id
+        definition
+        definition_type
+        definition
+        x_opencti_order
+        x_opencti_color
+        }
+        objectLabel {
+        id
+        value
+        color
+        }
+        name
+        aliases
+        status {
+        id
+        order
+        template {
+            name
+            color
+        }
+        }
+        workflowEnabled
+        ...ThreatActorGroupDetails_ThreatActorGroup
+    }
+`;
+export const ThreatActorGroupKnowledge_ThreatActorGroup = gql`
+    fragment ThreatActorGroupKnowledge_ThreatActorGroup on ThreatActorGroup {
+        id
+        name
+        aliases
+        first_seen
+        last_seen
+    }
+`;
+export const ThreatActorGroupDetails_ThreatActorGroup = gql`
+    fragment ThreatActorGroupDetails_ThreatActorGroup on ThreatActorGroup {
+        id
+        first_seen
+        last_seen
+        description
+        threat_actor_types
+        sophistication
+        resource_level
+        primary_motivation
+        secondary_motivations
+        goals
+        roles
+        images: importFiles(prefixMimeType: "image/") {
+        edges {
+            node {
+            id
+            name
+            metaData {
+                mimetype
+                order
+                inCarousel
+                description
+            }
+            }
+        }
+        }
+        ...ThreatActorGroupLocations_locations
+    }
+`;
+export const ThreatActorGroupLocations_locations = gql`
+    fragment ThreatActorGroupLocations_locations on ThreatActorGroup {
+        id
+        name
+        parent_types
+        entity_type
+        locations {
+        edges {
+            types
+            node {
+            id
+            parent_types
+            entity_type
+            name
+            x_opencti_aliases
+            description
+            }
+        }
+        }
+    }
+`;
+//#endregion
+
 //#region individuals
 export const IndividualDetails_individual = gql`
     fragment IndividualDetails_individual on Individual {

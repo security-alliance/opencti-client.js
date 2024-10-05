@@ -8,6 +8,7 @@ import { OpenCTIClient } from "../src/index.js";
 import {
     generateCryptocurrencyWalletObservableId,
     generateIdentityId,
+    generateThreatActorGroupId,
     generateIndicatorId,
     generateLabelId,
 } from "../src/stix/identifiers.js";
@@ -268,6 +269,38 @@ describe("Identities", () => {
         assert.equal(id, expectedIndividual.standard_id);
 
         await rejects(client.deleteIndividual(expectedIndividual.standard_id));
+    });
+});
+
+describe("Threat Actor Groups", () => {
+    const name = v4();
+
+    const expectedThreatGroup = {
+        name: name,
+        description: v4(),
+        confidence: 100,
+        objectMarking: [MARKING_TLP_RED],
+
+        standard_id: "",
+    };
+    expectedThreatGroup.standard_id = generateThreatActorGroupId({ name: name });
+
+    it("should create a threat actor group", async () => {
+        const existingGroup = await client.getThreatGroup(expectedThreatGroup.standard_id);
+        assert.equal(existingGroup, null);
+
+        const group = await client.createThreatGroup({
+            name: expectedThreatGroup.name,
+            description: expectedThreatGroup.description,
+            confidence: expectedThreatGroup.confidence,
+            objectMarking: expectedThreatGroup.objectMarking,
+        });
+
+        assert.equal(group.standard_id, expectedThreatGroup.standard_id);
+        assert.equal(group.name, expectedThreatGroup.name);
+        assert.equal(group.description, expectedThreatGroup.description);
+        assert.equal(group.objectMarking.length, 1);
+        assert.equal(group.objectMarking[0].standard_id, expectedThreatGroup.objectMarking[0]);
     });
 });
 

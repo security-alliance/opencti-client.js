@@ -146,6 +146,18 @@ export type Profile = {
     };
 };
 
+export type ThreatGroup = {
+    id: string;
+    standard_id: Identifier;
+    entity_type: "Threat-Actor-Group";
+
+    name: string;
+    description: string;
+    confidence: number;
+    objectMarking: Marking[];
+    objectLabel: Label[];
+};
+
 export type Individual = {
     id: string;
     standard_id: Identifier;

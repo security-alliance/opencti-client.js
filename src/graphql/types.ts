@@ -11,6 +11,8 @@ export type Incremental<T> = T | { [P in keyof T]?: P extends " $fragmentName" |
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 
+import { ThreatActorTypes } from "../types.js";
+
 export type Scalars = {
     ID: { input: string; output: string };
     String: { input: string; output: string };
@@ -152,6 +154,7 @@ export type ThreatGroupAddInput = {
     description?: InputMaybe<Scalars["String"]["input"]>;
     confidence?: InputMaybe<Scalars["Int"]["input"]>;
     objectMarking?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    threat_actor_types?: ThreatActorTypes[]
 }
 
 export type IndividualAddInput = {

@@ -146,6 +146,21 @@ export type Profile = {
     };
 };
 
+export enum ThreatActorTypes {
+    ACTIVIST = "activist",
+    COMPETITOR = "competitor",
+    CRIME_SYNDICATE = "crime-syndicate",
+    CRIMINAL = "criminal",
+    HACKER = "hacker",
+    INSIDER_ACCIDENTAL = "insider-accidental",
+    INSIDER_DISGRUNTED = "insider-disgruntled",
+    NATION_STATE = "nation-state",
+    SENSATIONALIST = "sensationalist",
+    SPY = "spy",
+    TERRORIST = "terrorist",
+    UNKNOWN = "unknown"
+};
+
 export type ThreatGroup = {
     id: string;
     standard_id: Identifier;
@@ -156,6 +171,7 @@ export type ThreatGroup = {
     confidence: number;
     objectMarking: Marking[];
     objectLabel: Label[];
+    threat_actor_types: ThreatActorTypes[]
 };
 
 export type Individual = {

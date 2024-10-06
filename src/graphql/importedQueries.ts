@@ -841,6 +841,52 @@ export const ThreatActorGroupPopoverDeletionMutation = gql`
     }
 `;
 
+export const ThreatActorIndividualCreationMutation = gql`
+    mutation ThreatActorIndividualCreationMutation(
+        $input: ThreatActorIndividualAddInput!
+    ) {
+        threatActorIndividualAdd(input: $input) {
+            id
+            name
+            description
+            entity_type
+            parent_types
+            ...ThreatActorIndividualCard_node
+        }
+    }
+`;
+
+export const RootThreatActorIndividualQuery = gql`
+  query RootThreatActorIndividualQuery($id: String!) {
+    threatActorIndividual(id: $id) {
+      id
+      standard_id
+      entity_type
+      name
+      aliases
+      x_opencti_graph_data
+      stixCoreObjectsDistribution(field: "entity_type", operation: count) {
+        label
+        value
+      }
+      ...ThreatActorIndividual_ThreatActorIndividual
+      ...ThreatActorIndividualKnowledge_ThreatActorIndividual
+      ...FileImportViewer_entity
+      ...FileExportViewer_entity
+      ...FileExternalReferencesViewer_entity
+      ...WorkbenchFileViewer_entity
+      ...PictureManagementViewer_entity
+      ...StixCoreObjectContent_stixCoreObject
+    }
+    connectorsForExport {
+      ...FileManager_connectorsExport
+    }
+    connectorsForImport {
+      ...FileManager_connectorsImport
+    }
+  }
+`;
+
 export const IndividualCreationMutation = gql`
     mutation IndividualCreationMutation($input: IndividualAddInput!) {
         individualAdd(input: $input) {

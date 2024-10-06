@@ -174,6 +174,19 @@ export type ThreatGroup = {
     threat_actor_types: ThreatActorTypes[]
 };
 
+export type ThreatIndividual = {
+    id: string;
+    standard_id: Identifier;
+    entity_type: "Threat-Actor-Individual";
+
+    name: string;
+    description: string;
+    confidence: number;
+    objectMarking: Marking[];
+    objectLabel: Label[];
+    threat_actor_types: ThreatActorTypes[]
+};
+
 export type Individual = {
     id: string;
     standard_id: Identifier;

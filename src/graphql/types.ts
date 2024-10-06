@@ -149,6 +149,14 @@ export enum IdentityType {
     System = "System",
 }
 
+export type ThreatIndividualAddInput = {
+    name: Scalars["String"]["input"];
+    description?: InputMaybe<Scalars["String"]["input"]>;
+    confidence?: InputMaybe<Scalars["Int"]["input"]>;
+    objectMarking?: InputMaybe<Array<InputMaybe<Scalars["String"]["input"]>>>;
+    threat_actor_types?: ThreatActorTypes[]
+}
+
 export type ThreatGroupAddInput = {
     name: Scalars["String"]["input"];
     description?: InputMaybe<Scalars["String"]["input"]>;

@@ -1172,6 +1172,290 @@ export const ThreatActorGroupLocations_locations = gql`
 `;
 //#endregion
 
+//#region
+export const ThreatActorIndividualCardFragment = gql`
+  fragment ThreatActorIndividualCard_node on ThreatActorIndividual {
+    id
+    name
+    aliases
+    description
+    created
+    modified
+    entity_type
+    threat_actor_types
+    sophistication
+    resource_level
+    creators {
+      id
+      name
+    }
+    avatar {
+      id
+      name
+    }
+    status {
+      id
+      template {
+        id
+        name
+        color
+      }
+    }
+    objectLabel {
+      id
+      value
+      color
+    }
+    objectMarking {
+      id
+      definition_type
+      definition
+      x_opencti_order
+      x_opencti_color
+    }
+    targetedCountries: stixCoreRelationships(
+      relationship_type: "targets"
+      toTypes: ["Country"]
+      first: 10
+      orderBy: created_at
+      orderMode: desc
+    ) {
+      edges {
+        node {
+          to {
+            ... on Country {
+              name
+            }
+          }
+        }
+      }
+    }
+    countryFlag: stixCoreRelationships(
+      relationship_type: "located-at"
+      toTypes: ["Country"]
+      first: 1
+      orderBy: created_at
+      orderMode: desc
+    ) {
+      edges {
+        node {
+          to {
+            ... on Country {
+              name
+              x_opencti_aliases
+            }
+          }
+        }
+      }
+    }
+    targetedSectors: stixCoreRelationships(
+      relationship_type: "targets"
+      toTypes: ["Sector"]
+      first: 10
+      orderBy: created_at
+      orderMode: desc
+    ) {
+      edges {
+        node {
+          to {
+            ... on Sector {
+              name
+            }
+          }
+        }
+      }
+    }
+    usedMalware: stixCoreRelationships(
+      relationship_type: "uses"
+      toTypes: ["Malware"]
+      first: 10
+      orderBy: created_at
+      orderMode: desc
+    ) {
+      edges {
+        node {
+          to {
+            ... on Malware {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const ThreatActorIndividual_ThreatActorIndividual = gql`
+  fragment ThreatActorIndividual_ThreatActorIndividual on ThreatActorIndividual {
+    id
+    standard_id
+    entity_type
+    x_opencti_stix_ids
+    spec_version
+    revoked
+    confidence
+    created
+    modified
+    created_at
+    updated_at
+    createdBy {
+      ... on Identity {
+        id
+        name
+        entity_type
+        x_opencti_reliability
+      }
+    }
+    creators {
+      id
+      name
+    }
+    objectMarking {
+      id
+      definition
+      definition_type
+      definition
+      x_opencti_order
+      x_opencti_color
+    }
+    objectLabel {
+      id
+      value
+      color
+    }
+    name
+    aliases
+    status {
+      id
+      order
+      template {
+        name
+        color
+      }
+    }
+    workflowEnabled
+    eye_color
+    hair_color
+    height {
+      date_seen
+      measure
+    }
+    weight {
+      date_seen
+      measure
+    }
+    date_of_birth
+    gender
+    marital_status
+    job_title
+    bornIn {
+      name
+    }
+    ethnicity {
+      name
+    }
+    stixCoreRelationships {
+      edges {
+        node {
+          relationship_type
+          to {
+            ... on Country {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+    ...ThreatActorIndividualDetails_ThreatActorIndividual
+  }
+`;
+
+export const ThreatActorIndividualKnowledge_ThreatActorIndividual = gql`
+  fragment ThreatActorIndividualKnowledge_ThreatActorIndividual on ThreatActorIndividual {
+    id
+    name
+    aliases
+    first_seen
+    last_seen
+  }
+`;
+
+export const ThreatActorIndividualDetails_ThreatActorIndividual = gql`
+  fragment ThreatActorIndividualDetails_ThreatActorIndividual on ThreatActorIndividual
+  {
+    id
+    first_seen
+    last_seen
+    description
+    threat_actor_types
+    sophistication
+    resource_level
+    personal_motivations
+    primary_motivation
+    secondary_motivations
+    goals
+    roles
+    stixCoreRelationships {
+      edges {
+        node {
+          id
+          relationship_type
+          to {
+            ... on Individual {
+              id
+              name
+            }
+            ... on Persona {
+              id
+              persona_name
+              persona_type
+            }
+          }
+        }
+      }
+    }
+    images: importFiles(prefixMimeType: "image/") {
+      edges {
+        node {
+          id
+          name
+          metaData {
+            mimetype
+            order
+            inCarousel
+            description
+          }
+        }
+      }
+    }
+    ...ThreatActorIndividualLocations_locations
+  }
+`;
+
+export const ThreatActorIndividualLocations_locations = gql`
+    fragment ThreatActorIndividualLocations_locations on ThreatActorIndividual {
+        id
+        name
+        parent_types
+        entity_type
+        locations {
+            edges {
+                types
+                node {
+                    id
+                    parent_types
+                    entity_type
+                    name
+                    x_opencti_aliases
+                    description
+                }
+            }
+        }
+    }
+`;
+//#endregion
+
 //#region individuals
 export const IndividualDetails_individual = gql`
     fragment IndividualDetails_individual on Individual {

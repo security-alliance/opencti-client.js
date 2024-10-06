@@ -10,6 +10,12 @@ This is a TypeScript library for interacting with OpenCTI
 
 ## Testing
 
+Copy the test environment file and fill in the values:
+
+```bash
+cp ./test/.t.env.example ./test/.t.env
+```
+
 To test this package in an external project:
 
 1. Build the package locally:

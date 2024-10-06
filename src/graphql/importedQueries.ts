@@ -833,6 +833,14 @@ export const ThreatGroupCreationMutation = gql`
     }
 `;
 
+export const ThreatActorGroupPopoverDeletionMutation = gql`
+    mutation ThreatActorGroupPopoverDeletionMutation($id: ID!) {
+        threatActorGroupEdit(id: $id) {
+            delete
+        }
+    }
+`;
+
 export const IndividualCreationMutation = gql`
     mutation IndividualCreationMutation($input: IndividualAddInput!) {
         individualAdd(input: $input) {

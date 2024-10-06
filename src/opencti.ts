@@ -72,6 +72,7 @@ import {
     IndicatorObservablePopoverDeletionMutation,
     IndicatorPopoverDeletionMutation,
     ThreatGroupCreationMutation,
+    ThreatActorGroupPopoverDeletionMutation,
     IndividualCreationMutation,
     IndividualPopoverDeletionMutation,
     LabelsQuerySearchQuery,
@@ -738,6 +739,17 @@ export class OpenCTIClient {
         });
 
         return this.assertQueryResult(result).threatActorGroup;
+    }
+
+    public async deleteThreatGroup(id: StixRef): Promise<StixRef> {
+        const result = await this.client.mutate<{ threatActorGroupEdit: { delete: StixRef } }>({
+            mutation: ThreatActorGroupPopoverDeletionMutation,
+            variables: {
+                id: id,
+            },
+        });
+
+        return this.assertMutateResult(result).threatActorGroupEdit.delete;
     }
 
     public async getIndividual(id: StixRef): Promise<Individual | null> {

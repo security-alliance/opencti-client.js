@@ -12,6 +12,12 @@ export const generateRequestForTakedownId = (props: Any<{ name: string; created:
     });
 };
 
+export const generateThreatActorGroupId = (props: Any<{ name: string; }>): Identifier<"threat-actor"> => {
+    return generateDeterministicId("threat-actor", {
+        name: normalizeName(props.name),
+    });
+};
+
 export const generateIdentityId = (
     props: Any<{ name: string; identity_class: IdentityClassOv }>,
 ): Identifier<"identity"> => {

@@ -146,6 +146,47 @@ export type Profile = {
     };
 };
 
+export enum ThreatActorTypes {
+    ACTIVIST = "activist",
+    COMPETITOR = "competitor",
+    CRIME_SYNDICATE = "crime-syndicate",
+    CRIMINAL = "criminal",
+    HACKER = "hacker",
+    INSIDER_ACCIDENTAL = "insider-accidental",
+    INSIDER_DISGRUNTED = "insider-disgruntled",
+    NATION_STATE = "nation-state",
+    SENSATIONALIST = "sensationalist",
+    SPY = "spy",
+    TERRORIST = "terrorist",
+    UNKNOWN = "unknown"
+};
+
+export type ThreatGroup = {
+    id: string;
+    standard_id: Identifier;
+    entity_type: "Threat-Actor-Group";
+
+    name: string;
+    description: string;
+    confidence: number;
+    objectMarking: Marking[];
+    objectLabel: Label[];
+    threat_actor_types: ThreatActorTypes[]
+};
+
+export type ThreatIndividual = {
+    id: string;
+    standard_id: Identifier;
+    entity_type: "Threat-Actor-Individual";
+
+    name: string;
+    description: string;
+    confidence: number;
+    objectMarking: Marking[];
+    objectLabel: Label[];
+    threat_actor_types: ThreatActorTypes[]
+};
+
 export type Individual = {
     id: string;
     standard_id: Identifier;

@@ -30,6 +30,15 @@ import {
     IndicatorEditionOverview_indicator,
     IndicatorLine_node,
     IndicatorObservables_indicator,
+    ThreatActorGroup_ThreatActorGroup,
+    ThreatActorGroupKnowledge_ThreatActorGroup,
+    ThreatActorGroupDetails_ThreatActorGroup,
+    ThreatActorGroupLocations_locations,
+    ThreatActorIndividualCardFragment,
+    ThreatActorIndividual_ThreatActorIndividual,
+    ThreatActorIndividualKnowledge_ThreatActorIndividual,
+    ThreatActorIndividualDetails_ThreatActorIndividual,
+    ThreatActorIndividualLocations_locations,
     Individual_individual,
     IndividualDetails_individual,
     IndividualKnowledge_individual,
@@ -67,6 +76,9 @@ import {
     IndicatorEditionOverviewRelationDeleteMutation,
     IndicatorObservablePopoverDeletionMutation,
     IndicatorPopoverDeletionMutation,
+    ThreatGroupCreationMutation,
+    ThreatActorIndividualCreationMutation,
+    ThreatActorGroupPopoverDeletionMutation,
     IndividualCreationMutation,
     IndividualPopoverDeletionMutation,
     LabelsQuerySearchQuery,
@@ -77,6 +89,8 @@ import {
     RootCaseRftCaseQuery,
     RootIncidentQuery,
     RootIndicatorQuery,
+    RootThreatActorGroupQuery,
+    RootThreatActorIndividualQuery,
     RootIndividualQuery,
     RootPrivateQuery,
     RootStixCyberObservableQuery,
@@ -111,6 +125,7 @@ import {
     OrderingMode,
     StixCoreRelationshipAddInput,
     StixRefRelationshipAddInput,
+    ThreatGroupAddInput,
 } from "./graphql/types.js";
 import { OpenCTIStream, OpenCTIStreamOptions } from "./sync.js";
 import {
@@ -126,6 +141,7 @@ import {
     ImportContentQueryResult,
     Incident,
     Indicator,
+    ThreatGroup,
     Individual,
     Label,
     Me,
@@ -136,6 +152,7 @@ import {
     StixCyberObservableAddInput,
     StixRef,
     Vocabulary,
+    ThreatIndividual,
 } from "./types.js";
 import { sleep } from "./utils.js";
 
@@ -175,6 +192,17 @@ export class OpenCTIClient {
 
                     NoteLine_node,
                     StixCoreObjectOrStixCoreRelationshipNoteCard_node,
+
+                    ThreatActorGroup_ThreatActorGroup,
+                    ThreatActorGroupKnowledge_ThreatActorGroup,
+                    ThreatActorGroupDetails_ThreatActorGroup,
+                    ThreatActorGroupLocations_locations,
+
+                    ThreatActorIndividualCardFragment,
+                    ThreatActorIndividual_ThreatActorIndividual,
+                    ThreatActorIndividualKnowledge_ThreatActorIndividual,
+                    ThreatActorIndividualDetails_ThreatActorIndividual,
+                    ThreatActorIndividualLocations_locations,
 
                     Individual_individual,
                     IndividualDetails_individual,
@@ -705,6 +733,61 @@ export class OpenCTIClient {
     }
 
     //#region identities
+    public async createThreatGroup(input: ThreatGroupAddInput): Promise<ThreatGroup> {
+        const result = await this.client.mutate<{ threatActorGroupAdd: ThreatGroup }>({
+            mutation: ThreatGroupCreationMutation,
+            variables: {
+                input: input,
+            },
+        });
+
+        return this.assertMutateResult(result).threatActorGroupAdd;
+    }
+
+    public async getThreatGroup(id: StixRef): Promise<ThreatGroup | null> {
+        const result = await this.client.query<{ threatActorGroup: ThreatGroup | null }>({
+            query: RootThreatActorGroupQuery,
+            variables: {
+                id: id,
+            },
+        });
+
+        return this.assertQueryResult(result).threatActorGroup;
+    }
+
+    public async deleteThreatGroup(id: StixRef): Promise<StixRef> {
+        const result = await this.client.mutate<{ threatActorGroupEdit: { delete: StixRef } }>({
+            mutation: ThreatActorGroupPopoverDeletionMutation,
+            variables: {
+                id: id,
+            },
+        });
+
+        return this.assertMutateResult(result).threatActorGroupEdit.delete;
+    }
+
+    public async createThreatIndividual(input: ThreatIndividualAddInput): Promise<ThreatIndividual> {
+        const result = await this.client.mutate<{ threatActorIndividualAdd: ThreatIndividual }>({
+            mutation: ThreatActorIndividualCreationMutation,
+            variables: {
+                input: input,
+            },
+        });
+
+        return this.assertMutateResult(result).threatActorIndividualAdd;
+    }
+
+    public async getThreatIndividual(id: StixRef): Promise<ThreatIndividual | null> {
+        const result = await this.client.query<{ threatActorIndividual: ThreatIndividual | null }>({
+            query: RootThreatActorIndividualQuery,
+            variables: {
+                id: id,
+            },
+        });
+
+        return this.assertQueryResult(result).threatActorIndividual;
+    }
+
     public async getIndividual(id: StixRef): Promise<Individual | null> {
         const result = await this.client.query<{ individual: Individual | null }>({
             query: RootIndividualQuery,

@@ -758,6 +758,37 @@ export const ProfileQuery = gql`
     }
 `;
 
+export const RootThreatActorGroupQuery = gql`
+  query RootThreatActorGroupQuery($id: String!) {
+    threatActorGroup(id: $id) {
+      id
+      standard_id
+      entity_type
+      name
+      aliases
+      x_opencti_graph_data
+      stixCoreObjectsDistribution(field: "entity_type", operation: count) {
+        label
+        value
+      }
+      ...ThreatActorGroup_ThreatActorGroup
+      ...ThreatActorGroupKnowledge_ThreatActorGroup
+      ...FileImportViewer_entity
+      ...FileExportViewer_entity
+      ...FileExternalReferencesViewer_entity
+      ...WorkbenchFileViewer_entity
+      ...PictureManagementViewer_entity
+      ...StixCoreObjectContent_stixCoreObject
+    }
+    connectorsForImport {
+      ...FileManager_connectorsImport
+    }
+    connectorsForExport {
+      ...FileManager_connectorsExport
+    }
+  }
+`;
+
 export const RootIndividualQuery = gql`
     query RootIndividualQuery($id: String!) {
         individual(id: $id) {
@@ -787,6 +818,73 @@ export const RootIndividualQuery = gql`
             id
         }
     }
+`;
+
+export const ThreatGroupCreationMutation = gql`
+    mutation ThreatActorGroupCreationMutation($input: ThreatActorGroupAddInput!) {
+        threatActorGroupAdd(input: $input) {
+            id
+            standard_id
+            name
+            description
+            entity_type
+            parent_types
+        }
+    }
+`;
+
+export const ThreatActorGroupPopoverDeletionMutation = gql`
+    mutation ThreatActorGroupPopoverDeletionMutation($id: ID!) {
+        threatActorGroupEdit(id: $id) {
+            delete
+        }
+    }
+`;
+
+export const ThreatActorIndividualCreationMutation = gql`
+    mutation ThreatActorIndividualCreationMutation(
+        $input: ThreatActorIndividualAddInput!
+    ) {
+        threatActorIndividualAdd(input: $input) {
+            id
+            name
+            description
+            entity_type
+            parent_types
+            ...ThreatActorIndividualCard_node
+        }
+    }
+`;
+
+export const RootThreatActorIndividualQuery = gql`
+  query RootThreatActorIndividualQuery($id: String!) {
+    threatActorIndividual(id: $id) {
+      id
+      standard_id
+      entity_type
+      name
+      aliases
+      x_opencti_graph_data
+      stixCoreObjectsDistribution(field: "entity_type", operation: count) {
+        label
+        value
+      }
+      ...ThreatActorIndividual_ThreatActorIndividual
+      ...ThreatActorIndividualKnowledge_ThreatActorIndividual
+      ...FileImportViewer_entity
+      ...FileExportViewer_entity
+      ...FileExternalReferencesViewer_entity
+      ...WorkbenchFileViewer_entity
+      ...PictureManagementViewer_entity
+      ...StixCoreObjectContent_stixCoreObject
+    }
+    connectorsForExport {
+      ...FileManager_connectorsExport
+    }
+    connectorsForImport {
+      ...FileManager_connectorsImport
+    }
+  }
 `;
 
 export const IndividualCreationMutation = gql`

@@ -185,15 +185,15 @@ describe("Indicators", () => {
     it("should be able to edit the indicator", async () => {
         const newName = v4();
         {
-            const newIndicator = await client.editIndicator(expectedIndicator.standard_id, "name", newName);
+            const newIndicator = await client.editIndicator(expectedIndicator.standard_id, [
+                { key: "name", value: [newName] },
+            ]);
             assert.equal(newIndicator.name, newName);
         }
         {
-            const newIndicator = await client.editIndicator(
-                expectedIndicator.standard_id,
-                "name",
-                expectedIndicator.name,
-            );
+            const newIndicator = await client.editIndicator(expectedIndicator.standard_id, [
+                { key: "name", value: [expectedIndicator.name] },
+            ]);
             assert.equal(newIndicator.name, expectedIndicator.name);
         }
         {

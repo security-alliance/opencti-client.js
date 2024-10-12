@@ -2,6 +2,9 @@ import {
     Identifier,
     StixCyberObservableObject,
     DomainName as StixDomainName,
+    IPv4Addr as StixIPv4Addr,
+    IPv6Addr as StixIPv6Addr,
+    Url as StixUrl,
     Identity as StixIdentity,
     Incident as StixIncident,
     Indicator as StixIndicator,
@@ -167,6 +170,12 @@ export type Observable<
 };
 
 export type DomainName = Observable<"Domain-Name", StixDomainName>;
+
+export type IPv4Addr = Observable<"IPv4-Addr", StixIPv4Addr>;
+
+export type IPv6Addr = Observable<"IPv6-Addr", StixIPv6Addr>;
+
+export type Url = Observable<"Url", StixUrl>;
 
 export type CryptocurrencyWallet = Observable<"Cryptocurrency-Wallet", StixCryptocurrencyWallet>;
 

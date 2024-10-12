@@ -1,6 +1,6 @@
 {
     "name": "@security-alliance/opencti-client",
-    "version": "0.0.17",
+    "version": "0.0.18",
     "description": "OpenCTI client for Security Alliance",
     "main": "opencti.js",
     "types": "opencti.d.ts",

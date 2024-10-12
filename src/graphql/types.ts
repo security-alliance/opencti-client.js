@@ -362,3 +362,16 @@ export enum FilterOperator {
     StartsWith = "starts_with",
     Wildcard = "wildcard",
 }
+
+export enum EditOperation {
+    Add = "add",
+    Remove = "remove",
+    Replace = "replace",
+}
+
+export type EditInput = {
+    key: Scalars["String"]["input"];
+    object_path?: InputMaybe<Scalars["String"]["input"]>;
+    operation?: InputMaybe<EditOperation>;
+    value: Array<InputMaybe<Scalars["Any"]["input"]>>;
+};

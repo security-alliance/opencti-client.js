@@ -98,6 +98,7 @@ import {
     CaseIncidentAddInput,
     CaseRfiAddInput,
     CaseRftAddInput,
+    EditInput,
     FilterGroup,
     FilterMode,
     FilterOperator,
@@ -127,6 +128,8 @@ import {
     Incident,
     Indicator,
     Individual,
+    IPv4Addr,
+    IPv6Addr,
     Label,
     Me,
     Note,
@@ -135,6 +138,7 @@ import {
     RelatedToEntity,
     StixCyberObservableAddInput,
     StixRef,
+    Url,
     Vocabulary,
 } from "./types.js";
 import { sleep } from "./utils.js";
@@ -254,15 +258,12 @@ export class OpenCTIClient {
         return this.assertMutateResult(result).indicatorAdd;
     }
 
-    public async editIndicator(id: StixRef, key: string, value: any): Promise<Indicator> {
+    public async editIndicator(id: StixRef, input: EditInput[]): Promise<Indicator> {
         const result = await this.client.mutate<{ indicatorFieldPatch: Indicator }>({
             mutation: IndicatorEditionOverviewFieldPatchMutation,
             variables: {
                 id: id,
-                input: {
-                    key: key,
-                    value: value,
-                },
+                input: input,
             },
         });
 
@@ -584,6 +585,34 @@ export class OpenCTIClient {
         return await this.createStixCyberObservable("Domain-Name", input, {
             DomainName: {
                 value: input.domain,
+            },
+        });
+    }
+
+    public async createIPv4AddressObservable(
+        input: Omit<StixCyberObservableAddInput, "type"> & { ip: string },
+    ): Promise<IPv4Addr> {
+        return await this.createStixCyberObservable("IPv4-Addr", input, {
+            IPv4Addr: {
+                value: input.ip,
+            },
+        });
+    }
+
+    public async createIPv6AddressObservable(
+        input: Omit<StixCyberObservableAddInput, "type"> & { ip: string },
+    ): Promise<IPv6Addr> {
+        return await this.createStixCyberObservable("IPv6-Addr", input, {
+            IPv6Addr: {
+                value: input.ip,
+            },
+        });
+    }
+
+    public async createUrlObservable(input: Omit<StixCyberObservableAddInput, "type"> & { url: string }): Promise<Url> {
+        return await this.createStixCyberObservable("Url", input, {
+            Url: {
+                value: input.url,
             },
         });
     }

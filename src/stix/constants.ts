@@ -1,4 +1,4 @@
-import { Identifier } from "@security-alliance/stix/dist/2.1/types.js";
+import { Identifier } from "@security-alliance/stix/2.1";
 
 export const OASIS_NAMESPACE = "00abedb4-aa42-466c-9c01-fed23315a9b7";
 export const OPENCTI_NAMESPACE = "b639ff3b-00eb-42ed-aa36-a8dd6f8fb4cf";

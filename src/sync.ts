@@ -3,7 +3,7 @@ import EventSource from "eventsource";
 import { sleep } from "./utils.js";
 import { Deque } from "@blakeembrey/deque";
 import { readFile, rename, writeFile } from "fs/promises";
-import { Identifier, StixObject, StixObjectType, StixObjectTypeMap } from "@security-alliance/stix/dist/2.1/types.js";
+import { Identifier, StixObject, StixObjectType, StixObjectTypeMap } from "@security-alliance/stix/2.1";
 import { Operation } from "fast-json-patch";
 
 export type UserEventOrigin = {

@@ -2,19 +2,18 @@ import {
     Identifier,
     StixCyberObservableObject,
     DomainName as StixDomainName,
-    IPv4Addr as StixIPv4Addr,
-    IPv6Addr as StixIPv6Addr,
-    Url as StixUrl,
     Identity as StixIdentity,
     Incident as StixIncident,
     Indicator as StixIndicator,
+    IPv4Addr as StixIPv4Addr,
+    IPv6Addr as StixIPv6Addr,
     Note as StixNote,
-} from "@security-alliance/stix/dist/2.1/types.js";
+    Url as StixUrl,
+} from "@security-alliance/stix/2.1";
 import {
     CaseIncident as StixCaseIncident,
-    CryptocurrencyWallet as StixCryptocurrencyWallet,
     CaseRfi as StixCaseRfi,
-    CaseRft as StixCaseRft,
+    CryptocurrencyWallet as StixCryptocurrencyWallet,
 } from "./stix/types.js";
 
 export * from "./stix/opencti.js";

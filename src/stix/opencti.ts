@@ -1,7 +1,7 @@
-import { CustomProperties } from "@security-alliance/stix/dist/2.1/types.js";
+import { CustomProperties } from "@security-alliance/stix/2.1";
 import { CaseIncident, CaseRfi, CaseRft, CryptocurrencyWallet } from "./types.js";
 
-declare module "@security-alliance/stix/dist/2.1/types.js" {
+declare module "@security-alliance/stix/2.1" {
     export interface CustomProperties {
         x_opencti_score: number;
 

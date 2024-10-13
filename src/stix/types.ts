@@ -3,7 +3,7 @@ import {
     BaseStixDomainObject,
     Identifier,
     OpenVocabulary,
-} from "@security-alliance/stix/dist/2.1/types.js";
+} from "@security-alliance/stix/2.1";
 
 export type CryptocurrencyWallet = BaseStixCyberObservableObject<"cryptocurrency-wallet"> & {
     value: string;

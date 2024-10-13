@@ -1,17 +1,16 @@
-import { generateBundleId, generateDomainObservableId } from "@security-alliance/stix/dist/2.1/identifiers.js";
-import { DomainName, StixBundle } from "@security-alliance/stix/dist/2.1/types.js";
+import { DomainName, generateBundleId, generateDomainNameId, StixBundle } from "@security-alliance/stix/2.1";
 import assert, { rejects } from "node:assert";
 import { randomBytes } from "node:crypto";
 import { describe, it } from "node:test";
 import { v4 } from "uuid";
 import { OpenCTIClient } from "../src/index.js";
+import { MARKING_TLP_CLEAR, MARKING_TLP_RED } from "../src/stix/constants.js";
 import {
-    generateCryptocurrencyWalletObservableId,
+    generateCryptocurrencyWalletId,
     generateIdentityId,
     generateIndicatorId,
     generateLabelId,
 } from "../src/stix/identifiers.js";
-import { EXTENSION_DEFINITION_OCTI_SDO, MARKING_TLP_CLEAR, MARKING_TLP_RED } from "../src/stix/constants.js";
 import { StixRef } from "../src/types.js";
 
 const client = new OpenCTIClient("https://sealisac.dev", process.env.SEAL_ISAC_API_KEY!);
@@ -26,7 +25,7 @@ describe("Observables", () => {
             standard_id: "" as StixRef,
         };
 
-        expected.standard_id = generateDomainObservableId({ value: expected.observable_value });
+        expected.standard_id = generateDomainNameId(expected.observable_value);
 
         it("should create a new observable", async () => {
             const existingObservable = await client.getDomainObservable(expected.standard_id);
@@ -52,21 +51,15 @@ describe("Observables", () => {
             assert.equal(observable.objectLabel.length, 0);
 
             observable.objectLabel = await client.addLabel(observable.standard_id, [
-                generateLabelId({ value: "blocklisted domain" }),
+                generateLabelId("blocklisted domain"),
             ]);
             assert.equal(observable.objectLabel.length, 1);
             assert.equal(observable.objectLabel[0].value, "blocklisted domain");
 
-            observable.objectLabel = await client.deleteLabel(
-                observable.id,
-                generateLabelId({ value: "allowlisted domain" }),
-            );
+            observable.objectLabel = await client.deleteLabel(observable.id, generateLabelId("allowlisted domain"));
             assert.equal(observable.objectLabel.length, 1);
 
-            observable.objectLabel = await client.deleteLabel(
-                observable.id,
-                generateLabelId({ value: "blocklisted domain" }),
-            );
+            observable.objectLabel = await client.deleteLabel(observable.id, generateLabelId("blocklisted domain"));
             assert.equal(observable.objectLabel.length, 0);
         });
 
@@ -88,7 +81,7 @@ describe("Observables", () => {
             standard_id: "" as StixRef,
         };
 
-        expected.standard_id = generateCryptocurrencyWalletObservableId({ value: expected.observable_value });
+        expected.standard_id = generateCryptocurrencyWalletId(expected.observable_value);
 
         it("should create a new observable", async () => {
             const existingObservable = await client.getCryptocurrencyWalletObservable(expected.standard_id);
@@ -278,7 +271,7 @@ describe("Import", () => {
             randomDomains.push(`${v4()}.invalid`);
         }
 
-        const observable = await client.getDomainObservable(generateDomainObservableId({ value: randomDomains[0] }));
+        const observable = await client.getDomainObservable(generateDomainNameId(randomDomains[0]));
         assert.equal(observable, null);
 
         const bundle: StixBundle = {
@@ -287,7 +280,7 @@ describe("Import", () => {
             objects: randomDomains.map((domain) => {
                 return {
                     type: "domain-name",
-                    id: generateDomainObservableId({ value: domain }),
+                    id: generateDomainNameId(domain),
                     value: domain,
                     x_opencti_labels: ["drainer"],
                     x_opencti_score: 100,
@@ -306,9 +299,7 @@ describe("Import", () => {
         await client.deleteFile(result.id);
         console.log("deleted file");
 
-        const existsObservable = await client.getDomainObservable(
-            generateDomainObservableId({ value: randomDomains[0] }),
-        );
+        const existsObservable = await client.getDomainObservable(generateDomainNameId(randomDomains[0]));
         assert.notEqual(existsObservable, null);
     });
 });

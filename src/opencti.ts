@@ -6,7 +6,7 @@ import {
     InMemoryCache,
     NormalizedCacheObject,
 } from "@apollo/client/core/index.js";
-import { Identifier, StixBundle } from "@security-alliance/stix/dist/2.1/types.js";
+import { StixBundle } from "@security-alliance/stix/2.1";
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { UUID } from "crypto";
 import { GraphQLError } from "./errors.js";
@@ -71,7 +71,6 @@ import {
     IndividualPopoverDeletionMutation,
     LabelsQuerySearchQuery,
     NoteCreationMutation,
-    NoteCreationUserMutation,
     OpenVocabFieldQuery,
     ProfileQuery,
     RootCaseRftCaseQuery,
@@ -108,7 +107,6 @@ import {
     IndividualAddInput,
     NoteAddInput,
     NotesOrdering,
-    NoteUserAddInput,
     OrderingMode,
     StixCoreRelationshipAddInput,
     StixRefRelationshipAddInput,

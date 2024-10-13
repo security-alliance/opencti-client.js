@@ -1,14 +1,29 @@
 {
     "name": "@security-alliance/opencti-client",
-    "version": "0.0.18",
-    "description": "OpenCTI client for Security Alliance",
-    "main": "opencti.js",
-    "types": "opencti.d.ts",
+    "version": "0.1.0",
+    "description": "OpenCTI client",
+    "publishConfig": {
+        "access": "public"
+    },
     "type": "module",
+    "exports": {
+        ".": "./dist/index.js",
+        "./stix": "./dist/stix/index.js"
+    },
+    "typesVersions": {
+        "*": {
+            ".": [
+                "dist/index.d.ts"
+            ],
+            "./stix": [
+                "dist/stix/index.d.ts"
+            ]
+        }
+    },
     "scripts": {
-        "build": "rm -rf dist/; tsc",
+        "build": "rm -rf dist/; tsc -p tsconfig.release.json",
         "test": "mocha",
-        "prepublishOnly": "npm run build",
+        "prepublishOnly": "pnpm run build",
         "prettier:check": "npx prettier -c \"**/*.{js,ts,md,json,yml,yaml}\"",
         "prettier:fix": "npx prettier -w \"**/*.{js,ts,md,json,yml,yaml}\""
     },
@@ -19,11 +34,13 @@
     ],
     "author": "Security Alliance",
     "license": "MIT",
-    "private": false,
+    "files": [
+        "dist/"
+    ],
     "dependencies": {
         "@apollo/client": "^3.10.4",
         "@blakeembrey/deque": "^1.0.5",
-        "@security-alliance/stix": "^0.0.5",
+        "@security-alliance/stix": "file:../stix.js/security-alliance-stix-0.1.0.tgz",
         "apollo-upload-client": "^18.0.1",
         "eventsource": "^2.0.2",
         "fast-json-patch": "^3.1.1",

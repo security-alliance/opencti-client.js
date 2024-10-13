@@ -15,8 +15,8 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5
       '@security-alliance/stix':
-        specifier: file:../stix.js/security-alliance-stix-0.1.0.tgz
-        version: file:../stix.js/security-alliance-stix-0.1.0.tgz
+        specifier: ^0.1.0
+        version: 0.1.0
       apollo-upload-client:
         specifier: ^18.0.1
         version: 18.0.1(@apollo/client@3.11.5(graphql@16.9.0))(graphql@16.9.0)
@@ -233,9 +233,8 @@ packages:
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
-  '@security-alliance/stix@file:../stix.js/security-alliance-stix-0.1.0.tgz':
-    resolution: {integrity: sha512-4C81oMX0Gx46Gq1X4/cLaAM+9FVxQvlxUymEWpcVe4hMKKQ5Kn6K4UpQCUKzviOtCyV8i38R98kd7PtSv5u8Bg==, tarball: file:../stix.js/security-alliance-stix-0.1.0.tgz}
-    version: 0.1.0
+  '@security-alliance/stix@0.1.0':
+    resolution: {integrity: sha512-w5OqvXKFXiN8qDPGVx4pecn8pZXUnUwTyFvpmBNU4o8OBClt1guCNj6cwRXI6gd5RQ3E3LupCgdkqOgNerTXFA==}
 
   '@types/apollo-upload-client@18.0.0':
     resolution: {integrity: sha512-cMgITNemktxasqvp6jiPj15dv84n3FTMvMoYBP1+xonDS+0l6JygIJrj2LJh85rShRzTOOkrElrAsCXXARa3KA==}
@@ -778,7 +777,7 @@ snapshots:
     dependencies:
       graphql: 16.9.0
 
-  '@security-alliance/stix@file:../stix.js/security-alliance-stix-0.1.0.tgz':
+  '@security-alliance/stix@0.1.0':
     dependencies:
       json-canonicalize: 1.0.6
       uuid: 10.0.0

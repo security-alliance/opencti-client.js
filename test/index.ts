@@ -14,7 +14,7 @@ import {
 import { EXTENSION_DEFINITION_OCTI_SDO, MARKING_TLP_CLEAR, MARKING_TLP_RED } from "../src/stix/constants.js";
 import { StixRef } from "../src/types.js";
 
-const client = new OpenCTIClient("https://sealisac.dev", process.env.SEAL_ISAC_API_KEY!);
+const client = new OpenCTIClient(process.env.OPENCTI_URL!, process.env.OPENCTI_API_KEY!);
 
 describe("Observables", () => {
     describe("Domain-Name", () => {

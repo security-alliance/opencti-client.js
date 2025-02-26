@@ -3,7 +3,7 @@
 import { Deque } from "@blakeembrey/deque";
 import { Identifier, StixObject, StixObjectType, StixObjectTypeMap } from "@security-alliance/stix/2.1";
 import EventEmitter from "events";
-import { ErrorEvent, EventSource, FetchLikeInit } from "eventsource";
+import { ErrorEvent, EventSource, EventSourceFetchInit } from "eventsource";
 import { Operation } from "fast-json-patch";
 import { readFile, rename, writeFile } from "fs/promises";
 import { sleep } from "./utils.js";
@@ -240,11 +240,11 @@ export class OpenCTIStream extends EventEmitter<{
     noDependencies: boolean;
     noDelete: boolean;
     withInferences: boolean;
-    authorization?: string;
+    authorization: string | undefined;
 
     state: OpenCTIStreamStateManager;
 
-    signal?: AbortSignal;
+    signal: AbortSignal | undefined;
 
     started: boolean;
     ready: boolean;
@@ -298,11 +298,8 @@ export class OpenCTIStream extends EventEmitter<{
         if (this.signal?.aborted) return;
 
         const eventSource = new EventSource(new URL("invalid://"), {
-            fetch: async (_: string | URL, init?: FetchLikeInit) => {
-                if (!init) init = {};
-
+            fetch: async (_: string | URL, init: EventSourceFetchInit) => {
                 if (this.authorization) {
-                    if (!init.headers) init.headers = {};
                     init.headers["authorization"] = `Bearer ${this.authorization}`;
                 }
 

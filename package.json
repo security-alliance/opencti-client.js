@@ -1,61 +1,60 @@
 {
     "name": "@security-alliance/opencti-client",
-    "version": "0.2.1",
-    "description": "OpenCTI client",
-    "publishConfig": {
-        "access": "public"
+    "version": "0.3.0",
+    "description": "TypeScript client for interacting with OpenCTI",
+    "keywords": [
+        "opencti",
+        "graphql",
+        "security-alliance"
+    ],
+    "homepage": "https://github.com/security-alliance/opencti-client",
+    "bugs": {
+        "url": "https://github.com/security-alliance/opencti-client/issues"
     },
+    "license": "MIT",
+    "author": "Security Alliance",
     "type": "module",
+    "files": [
+        "dist/"
+    ],
     "exports": {
         ".": "./dist/index.js",
         "./stix": "./dist/stix/index.js"
     },
-    "typesVersions": {
-        "*": {
-            ".": [
-                "dist/index.d.ts"
-            ],
-            "./stix": [
-                "dist/stix/index.d.ts"
-            ]
-        }
-    },
+    "repository": "github:security-alliance/opencti-client",
     "scripts": {
         "build": "rm -rf dist/; tsc -p tsconfig.release.json",
         "test": "mocha",
+        "generate": "node --import tsx scripts/generate-opencti-client.ts",
         "prepublishOnly": "pnpm run build",
         "prettier:check": "npx prettier -c \"**/*.{js,ts,md,json,yml,yaml}\"",
         "prettier:fix": "npx prettier -w \"**/*.{js,ts,md,json,yml,yaml}\""
     },
-    "keywords": [
-        "opencti",
-        "client",
-        "security-alliance"
-    ],
-    "author": "Security Alliance",
-    "license": "MIT",
-    "files": [
-        "dist/"
-    ],
     "dependencies": {
-        "@apollo/client": "^3.11.5",
+        "@apollo/client": "^3.13.8",
         "@blakeembrey/deque": "^1.0.5",
         "@security-alliance/stix": "^0.1.1",
         "apollo-upload-client": "^18.0.1",
-        "eventsource": "^3.0.5",
-        "fast-json-patch": "^3.1.1",
-        "graphql": "^16.9.0",
-        "json-canonicalize": "^1.0.6",
-        "uuid": "^10.0.0"
+        "eventsource": "^4.0.0",
+        "fast-json-patch": "^3.1.1"
     },
     "devDependencies": {
+        "@graphql-codegen/cli": "^5.0.7",
+        "@graphql-codegen/plugin-helpers": "^5.1.1",
+        "@graphql-codegen/typescript": "^4.1.6",
+        "@graphql-codegen/visitor-plugin-common": "^5.8.0",
         "@types/apollo-upload-client": "^18.0.0",
-        "@types/eventsource": "^1.1.15",
-        "@types/node": "^20.16.3",
+        "@types/node": "^24.1.0",
         "@types/uuid": "^10.0.0",
-        "mocha": "^10.7.3",
-        "prettier": "^3.3.3",
-        "tsx": "^4.19.1",
-        "typescript": "^5.5.4"
+        "graphql": "^16.11.0",
+        "mocha": "^11.7.1",
+        "prettier": "^3.6.2",
+        "tsx": "^4.20.3",
+        "typescript": "^5.8.3",
+        "uuid": "^11.1.0",
+        "yaml": "^2.8.0"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

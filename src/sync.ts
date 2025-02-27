@@ -1,12 +1,12 @@
 // https://github.com/OpenCTI-Platform/client-python/blob/master/pycti/connector/opencti_connector_helper.py
 
-import EventEmitter from "events";
-import { EventSource, FetchLikeInit, ErrorEvent } from "eventsource";
-import { sleep } from "./utils.js";
 import { Deque } from "@blakeembrey/deque";
-import { readFile, rename, writeFile } from "fs/promises";
 import { Identifier, StixObject, StixObjectType, StixObjectTypeMap } from "@security-alliance/stix/2.1";
+import EventEmitter from "events";
+import { ErrorEvent, EventSource, FetchLikeInit } from "eventsource";
 import { Operation } from "fast-json-patch";
+import { readFile, rename, writeFile } from "fs/promises";
+import { sleep } from "./utils.js";
 
 export type UserEventOrigin = {
     socket: string;
@@ -106,7 +106,7 @@ export interface OpenCTIStreamStateManager {
     getObjects(): Record<Identifier, StixObject>;
     getObject<T extends StixObjectType>(id: Identifier<T>): StixObjectTypeMap[T] | undefined;
 
-    commitChange(event: StateUpdateEvent): Promise<void>;
+    commitChanges(events: StateUpdateEvent[]): Promise<void>;
 }
 
 export class InMemoryOpenCTIStreamStateManager implements OpenCTIStreamStateManager {
@@ -138,20 +138,24 @@ export class InMemoryOpenCTIStreamStateManager implements OpenCTIStreamStateMana
         return this.objects[id] as StixObjectTypeMap[T];
     }
 
-    async commitChange(event: StateUpdateEvent): Promise<void> {
-        switch (event.updateType) {
-            case "create":
-            case "update":
-                const createUpdateData = event.body["data"];
-                this.objects[createUpdateData["id"]] = createUpdateData;
-                break;
-            case "delete":
-                const deleteData = event.body["data"];
-                delete this.objects[deleteData["id"]];
-                break;
+    async commitChanges(events: StateUpdateEvent[]): Promise<void> {
+        if (events.length === 0) return;
+
+        for (const event of events) {
+            switch (event.updateType) {
+                case "create":
+                case "update":
+                    const createUpdateData = event.body["data"];
+                    this.objects[createUpdateData["id"]] = createUpdateData;
+                    break;
+                case "delete":
+                    const deleteData = event.body["data"];
+                    delete this.objects[deleteData["id"]];
+                    break;
+            }
         }
 
-        this.lastEventId = event.lastEventId;
+        this.lastEventId = events[events.length - 1].lastEventId;
     }
 }
 
@@ -160,6 +164,7 @@ export class FilesystemOpenCTIStreamStateManager extends InMemoryOpenCTIStreamSt
     private commitFrequency: number;
 
     private committing = false;
+    private changes = 0;
     private lastCommittedTime = Date.now();
 
     constructor(path: string, commitFrequency?: number) {
@@ -183,10 +188,11 @@ export class FilesystemOpenCTIStreamStateManager extends InMemoryOpenCTIStreamSt
         }
     }
 
-    async commitChange(event: StateUpdateEvent): Promise<void> {
-        if (Date.now() - this.lastCommittedTime > this.commitFrequency && !this.committing) {
+    async commitChanges(events: StateUpdateEvent[]): Promise<void> {
+        if (Date.now() - this.lastCommittedTime > this.commitFrequency && this.changes > 0 && !this.committing) {
             try {
                 this.committing = true;
+                this.changes = 0;
 
                 const payload = {
                     lastEventId: this.lastEventId,
@@ -204,7 +210,8 @@ export class FilesystemOpenCTIStreamStateManager extends InMemoryOpenCTIStreamSt
             }
         }
 
-        super.commitChange(event);
+        super.commitChanges(events);
+        this.changes += events.length;
     }
 }
 
@@ -264,11 +271,7 @@ export class OpenCTIStream extends EventEmitter<{
         this.signal = options?.signal;
 
         this.signal?.addEventListener("abort", () => {
-            if (this.eventSource === undefined) return;
-
-            this.eventSource.close();
-            clearInterval(this.livenessChecker);
-            this.emit("closed");
+            this.stop();
         });
 
         this.started = false;
@@ -347,11 +350,16 @@ export class OpenCTIStream extends EventEmitter<{
         this.livenessChecker = setInterval(() => {
             if (eventSource.readyState !== EventSource.CLOSED) return;
 
-            clearInterval(this.livenessChecker);
-
             this.emit("error", new ErrorEvent("error", { message: "liveness checker detected closed event source" }));
-            this.emit("closed");
+
+            this.stop();
         }, 1000 * 60);
+    }
+
+    private stop() {
+        clearInterval(this.livenessChecker);
+        this.eventSource?.close();
+        this.emit("closed");
     }
 
     private async startEventWorker() {
@@ -361,39 +369,49 @@ export class OpenCTIStream extends EventEmitter<{
                 continue;
             }
 
-            const event = this.eventQueue.popLeft();
+            const events = Array.from(this.eventQueue.entries());
+            this.eventQueue.clear();
 
-            await this.state.commitChange(event);
-
-            switch (event.updateType) {
-                case "create":
-                    this.emit("create", {
-                        data: event.body.data,
-                        origin: event.body.origin,
-                        message: event.body.message,
-                    });
-                    break;
-                case "update":
-                    this.emit("update", {
-                        data: event.body.data,
-                        origin: event.body.origin,
-                        message: event.body.message,
-                        context: event.body.context,
-                    });
-                    break;
-                case "delete":
-                    this.emit("delete", {
-                        data: event.body.data,
-                        origin: event.body.origin,
-                        message: event.body.message,
-                    });
-                    break;
-                case "merge":
-                    this.emit("merge", event.body);
-                    break;
+            try {
+                await this.state.commitChanges(events);
+            } catch (e: any) {
+                this.emit("error", new ErrorEvent("error", { message: `failed to commit changes: ${e.toString()}` }));
+                this.stop();
+                return;
             }
 
-            this.tryMarkReady(event.lastEventId);
+            for (const event of events) {
+                switch (event.updateType) {
+                    case "create":
+                        this.emit("create", {
+                            data: event.body.data,
+                            origin: event.body.origin,
+                            message: event.body.message,
+                        });
+                        break;
+                    case "update":
+                        this.emit("update", {
+                            data: event.body.data,
+                            origin: event.body.origin,
+                            message: event.body.message,
+                            context: event.body.context,
+                        });
+                        break;
+                    case "delete":
+                        this.emit("delete", {
+                            data: event.body.data,
+                            origin: event.body.origin,
+                            message: event.body.message,
+                        });
+                        break;
+                    case "merge":
+                        this.emit("merge", event.body);
+                        break;
+                }
+            }
+
+            const latestEvent = events[events.length - 1];
+            this.tryMarkReady(latestEvent.lastEventId);
         }
     }
 

@@ -1,6 +1,6 @@
 {
     "name": "@security-alliance/opencti-client",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "OpenCTI client",
     "publishConfig": {
         "access": "public"

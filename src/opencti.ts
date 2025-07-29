@@ -3,6 +3,8 @@ import { BaseOpenCTIClient, File_All, Maybe, MutationStixCyberObservableAddArgs 
 import { OpenCTIStream, OpenCTIStreamOptions } from "./sync.js";
 import { sleep } from "./utils.js";
 
+export * from "./generated/graphql.js";
+
 export type SCOEntityTypes = {
     Artifact: "Artifact";
     "Autonomous-System": "AutonomousSystem";
